@@ -1,0 +1,7 @@
+.godot/
+.mono/
+.export/
+bin/
+obj/
+.DS_Store
+*.tmp
