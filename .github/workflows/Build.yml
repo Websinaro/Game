@@ -1,28 +1,37 @@
+
 name: Build CSharp project
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install .NET 8
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: 8.0.x
 
       - name: Download Godot 4.7.2 .NET
         run: |
-          wget -q https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.7.2-stable_mono_linux_x86_64.zip -O godot.zip
+          wget -q https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_mono_linux_x86_64.zip -O godot.zip
           unzip -q godot.zip -d godot
           chmod +x godot/Godot_v4.7.2-stable_mono_linux.x86_64
 
-      - name: Build C# scripts
+      - name: Check Godot version
         run: |
-          godot/Godot_v4.7.2-stable_mono_linux.x86_64 --headless --editor --path . --build-solutions --quit
+          godot/Godot_v4.7.2-stable_mono_linux.x86_64 --version
+
+      - name: Restore C# dependencies
+        run: dotnet restore
+
+      - name: Build C# project
+        run: dotnet build --configuration Release --no-restore
