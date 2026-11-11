@@ -2,9 +2,9 @@ name: Build CSharp project
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
 
 jobs:
   build:
@@ -19,27 +19,33 @@ jobs:
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            8.0.x
-            10.0.x
+          dotnet-version: "8.0.x"
 
-      - name: Download and Extract Godot Mono
+      - name: Install Godot Mono
+        shell: bash
         run: |
+          set -euo pipefail
+          GODOT_VERSION="4.3-stable"
+          GODOT_URL="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_mono_linux_x86_64.zip"
+
           mkdir -p godot
-          # Download Godot Mono Linux x86_64 release (adjust version if needed)
-          GODOT_VERSION="4.3-stable" # Change to your target version if not 4.3 (e.g., 4.2.1-stable)
-          wget https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_mono_linux.x86_64.zip -O godot/godot.zip
-          unzip godot/godot.zip -d godot/
-          # Clean up zip file
+          wget -O godot/godot.zip "$GODOT_URL"
+          unzip -o godot/godot.zip -d godot/
           rm godot/godot.zip
 
-      - name: Make Godot Executable
-        run: |
-          # Finds the extracted Godot binary dynamically inside the godot folder and makes it executable
-          chmod +x godot/Godot_v*_mono_linux.x86_64/Godot_v*_mono_linux.x86_64
+          GODOT_BIN="$(find godot -type f -name 'Godot_v*_mono_linux.x86_64' -print -quit)"
+          if [ -z "$GODOT_BIN" ]; then
+            echo "Godot executable not found"
+            find godot -maxdepth 3 -type f
+            exit 1
+          fi
+
+          chmod +x "$GODOT_BIN"
+          echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
+          "$GODOT_BIN" --headless --version
 
       - name: Restore NuGet Packages
         run: dotnet restore
 
       - name: Build C# Project
-        run: dotnet build --configuration ExportRelease
+        run: dotnet build --configuration ExportRelease --no-restore
