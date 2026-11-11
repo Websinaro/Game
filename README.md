@@ -1,34 +1,27 @@
-# Kerala Open World — Prototype 01
+# Kerala Open World — Prototype 02
 
-A small Godot 4 C# starter project for an Android-first Kerala village open-world game.
+A phone-first development project using Godot 4.7.2 .NET (C#).
 
-## Included in this first milestone
+## Current prototype
+- Procedurally generated placeholder Kerala village
+- Simple road, houses and coconut-tree placeholders
+- Third-person capsule player and follow camera
+- Basic keyboard movement actions (mobile touch controls are next)
 
-- Procedurally created green village ground and a road
-- Simple Kerala-inspired houses and coconut trees
-- Third-person capsule player
-- Follow camera
-- On-screen directional buttons for touch devices
-- Keyboard movement for desktop testing
+## Requirements
+- Godot 4.7.2 .NET edition
+- .NET 8 SDK
+- Matching Godot export templates for later exports
 
-This is a greybox prototype: the buildings and trees are temporary shapes. We will replace them with Prisma3D models as the project grows.
+The standard Godot Android Editor cannot execute C# scripts. GitHub Actions can compile the project, but running and exporting it requires the matching .NET editor/build environment.
 
-## Important: C# and Godot on Android
+## Controls
+The prototype registers these keyboard actions automatically:
+- `move_left`: A / Left
+- `move_right`: D / Right
+- `move_forward`: W / Up
+- `move_back`: S / Down
+- `jump`: Space
 
-This project targets **Godot 4.7.2 .NET** and .NET 8. The standard Godot Android Editor does not execute C# projects. You can keep the project in GitHub and use GitHub Actions to compile it, but you need a compatible Godot .NET editor/build workflow to run and export the C# game. Do not assume the regular Android editor can open this C# project.
-
-## Create the GitHub repository from your phone
-
-1. Open GitHub in your browser or app and sign in.
-2. Tap **New repository**.
-3. Name it `KeralaOpenWorld`.
-4. Choose **Private** or **Public**, then create it.
-5. Upload the contents of this ZIP to the repository root (upload the files and folders, not the ZIP itself).
-
-## Version check before first build
-
-The project is pinned to Godot 4.7.2 .NET. In your Godot app, open **About** or the version information and check whether it says **.NET**. If it is a different version, tell me the exact version before running the workflow; the project SDK and build workflow must match.
-
-## Next milestone
-
-After the first successful C# build, we will add a proper terrain layout, imported Prisma3D GLB assets, a better third-person camera, and mobile performance settings.
+## Next
+Replace the placeholder house and palm geometry with GLB assets made in Prisma3D, then add on-screen mobile controls.
