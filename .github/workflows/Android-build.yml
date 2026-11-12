@@ -22,11 +22,12 @@ jobs:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
+
       # 1. Checkout project
       - name: Checkout project
         uses: actions/checkout@v4
 
-      # 2. Install Java 17
+      # 2. Setup Java
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -59,19 +60,11 @@ jobs:
             "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip" \
             -O godot.zip
 
-          mkdir -p "$GITHUB_WORKSPACE/godot-bin"
+          mkdir -p godot-bin
 
-          unzip -oq godot.zip -d "$GITHUB_WORKSPACE/godot-bin"
-
-          echo "Downloaded files:"
-          find "$GITHUB_WORKSPACE/godot-bin" -maxdepth 2 -type f
+          unzip -oq godot.zip -d godot-bin
 
           GODOT_EXEC="$GITHUB_WORKSPACE/godot-bin/Godot_v${GODOT_RELEASE}_linux.x86_64"
-
-          if [ ! -f "$GODOT_EXEC" ]; then
-            echo "ERROR: Godot executable not found"
-            exit 1
-          fi
 
           chmod +x "$GODOT_EXEC"
 
@@ -79,14 +72,14 @@ jobs:
 
           "$GODOT_EXEC" --version
 
-      # 6. Download Godot export templates
-      - name: Download Android export templates
+      # 6. Download export templates
+      - name: Download Godot export templates
         run: |
           wget -q \
             "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz" \
             -O templates.tpz
 
-          mkdir -p templates-temp
+          mkdir templates-temp
 
           unzip -q templates.tpz -d templates-temp
 
@@ -96,31 +89,30 @@ jobs:
 
           cp -a templates-temp/templates/. "$TEMPLATE_DIR/"
 
-          echo "Installed templates:"
-          ls -la "$TEMPLATE_DIR"
+          ls -lh "$TEMPLATE_DIR"
 
       # 7. Verify project
-      - name: Verify Godot project
+      - name: Verify project
         run: |
           test -f project.godot || {
-            echo "ERROR: project.godot not found"
+            echo "project.godot missing"
             exit 1
           }
 
           test -f export_presets.cfg || {
-            echo "ERROR: export_presets.cfg not found"
+            echo "export_presets.cfg missing"
             exit 1
           }
 
           grep -q 'name="Android"' export_presets.cfg || {
-            echo "ERROR: Android export preset missing"
+            echo "Android preset missing"
             exit 1
           }
 
-          echo "Project verification successful."
+          echo "Project verified."
 
-      # 8. Create debug keystore
-      - name: Create debug keystore
+      # 8. Generate temporary debug keystore
+      - name: Generate debug keystore
         run: |
           mkdir -p "$HOME/.android"
 
@@ -133,7 +125,9 @@ jobs:
             -keyalg RSA \
             -validity 10000
 
-      # 9. Configure Godot Android paths
+          echo "Debug keystore created."
+
+      # 9. Configure Godot
       - name: Configure Godot
         run: |
           mkdir -p "$HOME/.config/godot"
@@ -152,47 +146,67 @@ jobs:
       # 10. Import project
       - name: Import Godot project
         run: |
-          "$GODOT_EXEC" --headless \
+          "$GODOT_EXEC" \
+            --headless \
             --editor \
             --path . \
             --import
 
-      # 11. Build APK
+      # 11. Export debug APK
       - name: Build Android APK
         run: |
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PATH="$HOME/.android/debug.keystore"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_USER="androiddebugkey"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="android"
+
           mkdir -p build
 
-          "$GODOT_EXEC" --headless \
+          "$GODOT_EXEC" \
+            --headless \
             --path . \
             --export-debug "Android" \
             build/Parashurama.apk
 
-          if [ ! -s build/Parashurama.apk ]; then
-            echo "ERROR: APK was not generated"
-            exit 1
-          fi
+          test -s build/Parashurama.apk
 
-      # 12. Validate APK
+      # 12. Align and sign APK
+      - name: Sign APK
+        run: |
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.1"
+
+          "$BUILD_TOOLS/zipalign" -f -p 4 \
+            build/Parashurama.apk \
+            build/Parashurama-aligned.apk
+
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks "$HOME/.android/debug.keystore" \
+            --ks-key-alias androiddebugkey \
+            --ks-pass pass:android \
+            --key-pass pass:android \
+            --out build/Parashurama-signed.apk \
+            build/Parashurama-aligned.apk
+
+          mv build/Parashurama-signed.apk build/Parashurama.apk
+
+      # 13. Validate APK
       - name: Validate APK
         run: |
-          echo "Checking APK file..."
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/35.0.1"
 
-          file build/Parashurama.apk
+          "$BUILD_TOOLS/apksigner" verify --verbose \
+            build/Parashurama.apk
+
+          "$BUILD_TOOLS/zipalign" -c -v 4 \
+            build/Parashurama.apk
 
           unzip -t build/Parashurama.apk
 
-          echo "Verifying APK signature..."
+          echo "APK successfully signed and validated."
 
-          "$ANDROID_HOME/build-tools/35.0.1/apksigner" \
-            verify --verbose build/Parashurama.apk
+          ls -lh build/Parashurama.apk
 
-          echo "APK validation successful."
-
-          echo "APK size:"
-          du -h build/Parashurama.apk
-
-      # 13. Upload APK
-      - name: Upload Android APK
+      # 14. Upload APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Parashurama-Android-APK
