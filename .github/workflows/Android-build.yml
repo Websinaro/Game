@@ -7,45 +7,51 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build Android APK
     runs-on: ubuntu-24.04
 
     env:
       GODOT_VERSION: 4.7.2
       GODOT_RELEASE: 4.7.2-stable
       ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
-      - name: Checkout original Godot project
+      # 1. Download your original Godot project
+      - name: Checkout project
         uses: actions/checkout@v4
 
-      - name: Install Java
+      # 2. Install Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
 
-      
-      - name: Install Android SDK
-        uses: android-actions/setup-android@v3
+      # 3. Setup Android command-line tools
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
         with:
-          packages: |
-            platform-tools
-            platforms;android-35
-            build-tools;35.0.1
-            ndk;28.1.13356709
+          packages: ''
 
-      - name: Install SDK components
+      # 4. Install Godot-required Android SDK components
+      - name: Install Android SDK components
         run: |
-          sdkmanager --licenses || true
-          sdkmanager \
+          sdkmanager --sdk_root="$ANDROID_HOME" --install \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.1" \
+            "cmdline-tools;latest" \
+            "cmake;3.10.2.4988404" \
             "ndk;28.1.13356709"
 
-      - name: Download Godot 4.7.2
+      # 5. Download Godot Linux editor
+      - name: Download Godot
         run: |
           wget -q \
             "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip" \
@@ -56,42 +62,52 @@ jobs:
 
           chmod +x godot-bin/Godot_v${GODOT_RELEASE}_linux.x86_64
 
-          sudo ln -s "$GITHUB_WORKSPACE/godot-bin/Godot_v${GODOT_RELEASE}_linux.x86_64" /usr/local/bin/godot
+          echo "$GITHUB_WORKSPACE/godot-bin" >> "$GITHUB_PATH"
 
-      - name: Install matching export templates
+      # 6. Download matching Godot export templates
+      - name: Download Android export templates
         run: |
           wget -q \
             "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz" \
             -O templates.tpz
 
+          mkdir templates-temp
+
+          unzip -q templates.tpz -d templates-temp
+
           TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
 
           mkdir -p "$TEMPLATE_DIR"
-          mkdir templates-temp
-          unzip -q templates.tpz -d templates-temp
 
           cp -a templates-temp/templates/. "$TEMPLATE_DIR/"
 
-      - name: Verify project
+          echo "Installed export templates:"
+          ls "$TEMPLATE_DIR"
+
+      # 7. Verify project files
+      - name: Verify Godot project
         run: |
-          test -f project.godot || {
-            echo "ERROR: project.godot must be in repository root"
+          if [ ! -f project.godot ]; then
+            echo "ERROR: project.godot not found in repository root"
             exit 1
-          }
+          fi
 
-          test -f export_presets.cfg || {
-            echo "ERROR: Android export preset is missing"
+          if [ ! -f export_presets.cfg ]; then
+            echo "ERROR: export_presets.cfg is missing"
             exit 1
-          }
+          fi
 
-          grep -q 'name="Android"' export_presets.cfg || {
-            echo "ERROR: Export preset must be named Android"
+          if ! grep -q 'name="Android"' export_presets.cfg; then
+            echo "ERROR: Android export preset not found"
             exit 1
-          }
+          fi
 
-      - name: Configure Godot Android settings
+          echo "Godot project files verified."
+
+      # 8. Create temporary debug signing key
+      - name: Create debug keystore
         run: |
-          mkdir -p "$HOME/.config/godot"
+          mkdir -p "$HOME/.android"
 
           keytool -genkeypair \
             -keystore "$HOME/.android/debug.keystore" \
@@ -102,33 +118,58 @@ jobs:
             -keyalg RSA \
             -validity 10000
 
+      # 9. Configure Godot Android SDK paths
+      - name: Configure Godot
+        run: |
+          mkdir -p "$HOME/.config/godot"
+
           cat > "$HOME/.config/godot/editor_settings-4.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
-          export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"
-          export/android/android_sdk_path = "/usr/local/lib/android/sdk"
-          export/android/debug_keystore = "$HOME/.android/debug.keystore"
-          export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_keystore_pass = "android"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$ANDROID_HOME"
           EOF
 
+      # 10. Import project resources
       - name: Import Godot project
         run: |
-          godot --headless --editor --path . --import
+          godot --version
 
-      - name: Export debug APK
+          godot --headless \
+            --editor \
+            --path . \
+            --import
+
+      # 11. Export APK
+      - name: Build Android APK
+        env:
+          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ env.HOME }}/.android/debug.keystore
+          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
+          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p build
 
-          godot --headless --path . \
+          godot --headless \
+            --path . \
             --export-debug "Android" \
             build/Parashurama.apk
 
-          test -s build/Parashurama.apk
+          if [ ! -s build/Parashurama.apk ]; then
+            echo "ERROR: APK was not generated"
+            exit 1
+          fi
 
+      # 12. Validate APK
+      - name: Validate APK
+        run: |
           file build/Parashurama.apk
+          unzip -t build/Parashurama.apk
 
+          echo "APK size:"
+          du -h build/Parashurama.apk
+
+      # 13. Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
