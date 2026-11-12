@@ -1,21 +1,45 @@
+; Engine configuration file.
+; PARASHURAMA - THE ORIGIN OF KERALA  (Phase 1: The Lost Axe)
+
 config_version=5
 
 [application]
-config/name="Kerala Open World"
+
+config/name="Parashurama - The Origin of Kerala"
+config/description="Kerala-inspired mythological open-world adventure. Phase 1: The Lost Axe."
 run/main_scene="res://Scenes/Main.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+config/quit_on_go_back=false
+
+[autoload]
+
+GameInput="*res://Scripts/Core/GameInput.gd"
+QuestManager="*res://Scripts/Story/QuestManager.gd"
+StoryManager="*res://Scripts/Story/StoryManager.gd"
 
 [display]
+
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/size/window_width_override=1280
-window/size/window_height_override=720
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+pointing/emulate_mouse_from_touch=true
+
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_2="player"
 
 [rendering]
+
 renderer/rendering_method="mobile"
 renderer/rendering_method.mobile="mobile"
-textures/default_filters/use_nearest_mipmap_filter=false
+textures/vram_compression/import_etc2_astc=true
+anti_aliasing/quality/msaa_3d=1
+lights_and_shadows/directional_shadow/size=2048
 environment/defaults/default_clear_color=Color(0.52, 0.76, 0.91, 1)
-
-[physics]
-3d/default_gravity=9.8

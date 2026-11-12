@@ -1,0 +1,17 @@
+{
+  "quests": [
+    {
+      "id": "lost_axe",
+      "title": "The Lost Axe",
+      "phase": 1,
+      "start_notify": "Explore the beach. Something may have been left behind.",
+      "objectives": [
+        { "id": "find_marks", "text": "Find the first clue to the missing axe.", "notify": "" },
+        { "id": "hidden_path", "text": "Follow the trail into the forest and find the hidden path.", "notify": "The marks lead to the forest. Look for anything unusual - a path may be hidden." },
+        { "id": "inscriptions", "text": "Search the forgotten sanctum for inscription fragments.", "required": 3, "notify": "A forgotten sanctum! Search its ruins for pieces of an inscription." },
+        { "id": "symbols", "text": "Set the three stone pillars to the right symbols.", "notify": "Read the great tablet, then turn the pillars." },
+        { "id": "altar", "text": "Enter the inner sanctum and examine the altar.", "notify": "The sanctum gate is open." }
+      ]
+    }
+  ]
+}

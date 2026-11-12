@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://Assets/Materials/ocean.gdshader" id="1_shader"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/shallow_color = Color(0.1, 0.6, 0.64, 0.72)
+shader_parameter/deep_color = Color(0.02, 0.2, 0.4, 0.95)
+shader_parameter/wave_height = 0.22
+shader_parameter/wave_speed = 0.8

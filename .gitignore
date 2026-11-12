@@ -1,7 +1,8 @@
 .godot/
+.import/
+*.translation
+export_presets.cfg
+*.apk
+*.aab
 .mono/
-bin/
-obj/
-.export/
-*.tmp
-.DS_Store
+data_*/

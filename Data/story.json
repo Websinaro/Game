@@ -1,0 +1,77 @@
+{
+  "_comment": "All narrative text. This game is a fictional retelling inspired by the Kerala legend of Parashurama; additions are invented and are not presented as history.",
+  "intro": {
+    "title": "PARASHURAMA",
+    "subtitle": "THE ORIGIN OF KERALA",
+    "captions": [
+      "Long ago, where Kerala's green hills now rise, there was only the sea.",
+      "The old tale says a sage-warrior, Parashurama, hurled his divine axe across the waters, and the waves drew back to reveal a new land.",
+      "At last he comes to the shore, bearing a vow he cannot yet fulfil.",
+      "He reaches for the axe upon his back...",
+      "...and finds only emptiness.",
+      "The axe is gone. Without it, the sea cannot be commanded, and the land cannot rise.",
+      "Search this mysterious shore. Find the first clue to the missing axe."
+    ],
+    "disclaimer": "A fictional retelling inspired by Kerala legend."
+  },
+  "lore": {
+    "beach_marks": {
+      "title": "Marks in the Sand",
+      "body": "Two deep grooves cut across the sand, as if something heavy and sharp was dragged ashore and hauled inland. Beside them, footprints - too light for a warrior's.\n\nWhoever took the axe went toward the whispering forest to the north-west."
+    },
+    "tree_mark": {
+      "title": "The Marked Tree",
+      "body": "Beneath the moss, a spiral sigil glows in the bark. As Parashurama's palm rests on it, the vines to the north rustle and draw apart.\n\nA forgotten path is revealed, lit by small lamps that no one remembers lighting."
+    },
+    "tree_locked": {
+      "title": "A Strange Carving",
+      "body": "An old sigil is carved into this tree. You feel it matters, but you do not yet know why. Perhaps the trail ahead holds answers."
+    },
+    "fragment_1": {
+      "title": "Inscription Fragment I",
+      "body": "A shard of carved stone. The worn script reads:\n\n\"First came the SEA, that gave and took away.\""
+    },
+    "fragment_2": {
+      "title": "Inscription Fragment II",
+      "body": "A second shard, warm to the touch:\n\n\"Then the FOREST, that grew and kept its secrets.\""
+    },
+    "fragment_3": {
+      "title": "Inscription Fragment III",
+      "body": "The last shard hums softly:\n\n\"Last the MOUNTAIN, that watched all and forgot nothing.\""
+    },
+    "fragment_locked": {
+      "title": "Fallen Stone",
+      "body": "Carved fragments lie here, but you cannot yet tell what they are part of."
+    },
+    "tablet_empty": {
+      "title": "The Great Tablet",
+      "body": "A vast tablet, its inscription shattered. Pieces of it must lie scattered across this place."
+    },
+    "tablet_partial": {
+      "title": "The Great Tablet",
+      "body": "Some lines are restored, but the inscription is still incomplete:"
+    },
+    "tablet_full": {
+      "title": "The Great Tablet",
+      "body": "The inscription is whole:\n\nFirst the SEA.\nThen the FOREST.\nLast the MOUNTAIN.\n\nThree pillars wait. Set each to its truth, in that order, from west to east."
+    },
+    "pillars_dormant": {
+      "title": "Dormant Pillar",
+      "body": "The pillar is cold and silent. The inscription must be understood first."
+    },
+    "final_clue": {
+      "title": "The Carved Relief",
+      "body": "On the altar, a relief glows: a figure carrying an axe, climbing toward vast, mist-wrapped mountains, followed by a line of lamps.\n\nBelow it, the words: \"Not lost, but carried. Where the clouds drink the forests, the Keeper waits.\"\n\nWhoever took the axe did so deliberately - and took it east, toward the high mountains."
+    }
+  },
+  "phase_complete": {
+    "title": "PHASE 1 - THE LOST AXE",
+    "banner": "THE JOURNEY HAS JUST BEGUN...",
+    "subtitle": "Phase 2 awaits beyond the mountains: dense forests, rivers and hidden caves.\nYou may keep exploring."
+  },
+  "tablet_lines": [
+    "First came the SEA, that gave and took away.",
+    "Then the FOREST, that grew and kept its secrets.",
+    "Last the MOUNTAIN, that watched all and forgot nothing."
+  ]
+}

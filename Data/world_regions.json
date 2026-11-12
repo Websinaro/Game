@@ -1,0 +1,281 @@
+{
+  "version": 1,
+  "_comment": "World layout. x = east, z = south (north is -z). To add a region: append an entry to 'regions' with a scene whose root script extends RegionBase, set enabled=true. To extend the map: remove a key from terrain.bounds (opens that edge) and add a tile to terrain_tiles.",
+  "terrain": {
+    "ridge_z": -30.0,
+    "ridge_gap_x": -45.0,
+    "ridge_gap_half": 6.0,
+    "ridge_height": 14.0,
+    "sea_wall_z": 61.0,
+    "bounds": {
+      "west": -120.0,
+      "east": 120.0,
+      "north": -120.0
+    }
+  },
+  "terrain_tiles": [
+    {
+      "id": "start",
+      "origin": [
+        -120.0,
+        -120.0
+      ],
+      "size": 240.0
+    }
+  ],
+  "player_spawn": [
+    0.0,
+    47.0
+  ],
+  "regions": [
+    {
+      "id": "ancient_ruins",
+      "name": "The Forgotten Sanctum",
+      "phase": 1,
+      "enabled": true,
+      "scene": "res://Scenes/Environment/AncientRuins.tscn",
+      "center": [
+        -38.0,
+        -72.0
+      ],
+      "radius": 30.0,
+      "flatten": {
+        "height": 9.0,
+        "inner": 0.7
+      },
+      "ground": {
+        "soil": 0.15,
+        "rock": 0.45
+      }
+    },
+    {
+      "id": "village",
+      "name": "Kadalkara Village",
+      "phase": 1,
+      "enabled": true,
+      "scene": "res://Scenes/Environment/Village.tscn",
+      "center": [
+        70.0,
+        10.0
+      ],
+      "radius": 28.0,
+      "flatten": {
+        "height": 3.2,
+        "inner": 0.7
+      },
+      "ground": {
+        "soil": 0.5,
+        "rock": 0.0
+      }
+    },
+    {
+      "id": "forest",
+      "name": "The Whispering Grove",
+      "phase": 1,
+      "enabled": true,
+      "scene": "res://Scenes/Environment/Forest.tscn",
+      "center": [
+        -45.0,
+        -2.0
+      ],
+      "radius": 44.0,
+      "ground": {
+        "soil": 0.3,
+        "rock": 0.0
+      }
+    },
+    {
+      "id": "coast",
+      "name": "The Arabian Shore",
+      "phase": 1,
+      "enabled": true,
+      "scene": "res://Scenes/Environment/Coast.tscn",
+      "center": [
+        0.0,
+        52.0
+      ],
+      "radius": 60.0
+    },
+    {
+      "id": "dense_forest",
+      "name": "The Deep Forest",
+      "phase": 2,
+      "enabled": false,
+      "scene": "",
+      "center": [
+        -45.0,
+        -200.0
+      ],
+      "radius": 60.0,
+      "notes": "Dense forest, waterfalls, rivers, ancient caves, mountain pathways."
+    },
+    {
+      "id": "villages_paddy",
+      "name": "Paddy Lands and Temple Villages",
+      "phase": 3,
+      "enabled": false,
+      "scene": "",
+      "center": [
+        140.0,
+        0.0
+      ],
+      "radius": 60.0,
+      "notes": "Villages, paddy fields, temples, NPCs."
+    },
+    {
+      "id": "western_ghats",
+      "name": "The Western Ghats",
+      "phase": 4,
+      "enabled": false,
+      "scene": "",
+      "center": [
+        0.0,
+        -320.0
+      ],
+      "radius": 90.0,
+      "notes": "Large mountains, deep forests, hidden ancient locations."
+    },
+    {
+      "id": "grand_coast",
+      "name": "The Long Coast",
+      "phase": 5,
+      "enabled": false,
+      "scene": "",
+      "center": [
+        0.0,
+        200.0
+      ],
+      "radius": 100.0,
+      "notes": "Large coastline, settlements, final axe discovery."
+    }
+  ],
+  "paths": [
+    {
+      "id": "forest_trail",
+      "width": 4.0,
+      "strength": 1.0,
+      "points": [
+        [
+          -12,
+          46
+        ],
+        [
+          -22,
+          34
+        ],
+        [
+          -32,
+          20
+        ],
+        [
+          -40,
+          8
+        ],
+        [
+          -46,
+          -6
+        ],
+        [
+          -45,
+          -18
+        ],
+        [
+          -45,
+          -30
+        ]
+      ]
+    },
+    {
+      "id": "hidden_path",
+      "width": 4.0,
+      "strength": 0.7,
+      "points": [
+        [
+          -45,
+          -30
+        ],
+        [
+          -44,
+          -40
+        ],
+        [
+          -41,
+          -48
+        ],
+        [
+          -38,
+          -56
+        ]
+      ]
+    },
+    {
+      "id": "village_road",
+      "width": 4.0,
+      "strength": 1.0,
+      "points": [
+        [
+          14,
+          46
+        ],
+        [
+          28,
+          36
+        ],
+        [
+          44,
+          26
+        ],
+        [
+          58,
+          16
+        ],
+        [
+          70,
+          10
+        ]
+      ]
+    },
+    {
+      "id": "village_loop",
+      "width": 3.4,
+      "strength": 0.9,
+      "points": [
+        [
+          70,
+          10
+        ],
+        [
+          72,
+          22
+        ],
+        [
+          62,
+          28
+        ],
+        [
+          56,
+          20
+        ]
+      ]
+    },
+    {
+      "id": "village_east",
+      "width": 3.4,
+      "strength": 0.9,
+      "points": [
+        [
+          70,
+          10
+        ],
+        [
+          82,
+          4
+        ],
+        [
+          86,
+          -6
+        ]
+      ]
+    }
+  ]
+}
