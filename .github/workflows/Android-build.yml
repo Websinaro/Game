@@ -22,7 +22,7 @@ jobs:
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
-      # 1. Download your original Godot project
+      # 1. Checkout project
       - name: Checkout project
         uses: actions/checkout@v4
 
@@ -33,16 +33,18 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # 3. Setup Android command-line tools
+      # 3. Setup Android SDK
       - name: Setup Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: ''
+          packages: 'platform-tools'
 
-      # 4. Install Godot-required Android SDK components
+      # 4. Install Android components
       - name: Install Android SDK components
         run: |
-          sdkmanager --sdk_root="$ANDROID_HOME" --install \
+          sdkmanager --licenses
+
+          sdkmanager --install \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.1" \
@@ -50,28 +52,41 @@ jobs:
             "cmake;3.10.2.4988404" \
             "ndk;28.1.13356709"
 
-      # 5. Download Godot Linux editor
+      # 5. Download Godot
       - name: Download Godot
         run: |
           wget -q \
             "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_linux.x86_64.zip" \
             -O godot.zip
 
-          mkdir godot-bin
-          unzip -q godot.zip -d godot-bin
+          mkdir -p "$GITHUB_WORKSPACE/godot-bin"
 
-          chmod +x godot-bin/Godot_v${GODOT_RELEASE}_linux.x86_64
+          unzip -oq godot.zip -d "$GITHUB_WORKSPACE/godot-bin"
 
-          echo "$GITHUB_WORKSPACE/godot-bin" >> "$GITHUB_PATH"
+          echo "Downloaded files:"
+          find "$GITHUB_WORKSPACE/godot-bin" -maxdepth 2 -type f
 
-      # 6. Download matching Godot export templates
+          GODOT_EXEC="$GITHUB_WORKSPACE/godot-bin/Godot_v${GODOT_RELEASE}_linux.x86_64"
+
+          if [ ! -f "$GODOT_EXEC" ]; then
+            echo "ERROR: Godot executable not found"
+            exit 1
+          fi
+
+          chmod +x "$GODOT_EXEC"
+
+          echo "GODOT_EXEC=$GODOT_EXEC" >> "$GITHUB_ENV"
+
+          "$GODOT_EXEC" --version
+
+      # 6. Download Godot export templates
       - name: Download Android export templates
         run: |
           wget -q \
             "https://github.com/godotengine/godot/releases/download/${GODOT_RELEASE}/Godot_v${GODOT_RELEASE}_export_templates.tpz" \
             -O templates.tpz
 
-          mkdir templates-temp
+          mkdir -p templates-temp
 
           unzip -q templates.tpz -d templates-temp
 
@@ -81,30 +96,30 @@ jobs:
 
           cp -a templates-temp/templates/. "$TEMPLATE_DIR/"
 
-          echo "Installed export templates:"
-          ls "$TEMPLATE_DIR"
+          echo "Installed templates:"
+          ls -la "$TEMPLATE_DIR"
 
-      # 7. Verify project files
+      # 7. Verify project
       - name: Verify Godot project
         run: |
-          if [ ! -f project.godot ]; then
-            echo "ERROR: project.godot not found in repository root"
+          test -f project.godot || {
+            echo "ERROR: project.godot not found"
             exit 1
-          fi
+          }
 
-          if [ ! -f export_presets.cfg ]; then
-            echo "ERROR: export_presets.cfg is missing"
+          test -f export_presets.cfg || {
+            echo "ERROR: export_presets.cfg not found"
             exit 1
-          fi
+          }
 
-          if ! grep -q 'name="Android"' export_presets.cfg; then
-            echo "ERROR: Android export preset not found"
+          grep -q 'name="Android"' export_presets.cfg || {
+            echo "ERROR: Android export preset missing"
             exit 1
-          fi
+          }
 
-          echo "Godot project files verified."
+          echo "Project verification successful."
 
-      # 8. Create temporary debug signing key
+      # 8. Create debug keystore
       - name: Create debug keystore
         run: |
           mkdir -p "$HOME/.android"
@@ -118,7 +133,7 @@ jobs:
             -keyalg RSA \
             -validity 10000
 
-      # 9. Configure Godot Android SDK paths
+      # 9. Configure Godot Android paths
       - name: Configure Godot
         run: |
           mkdir -p "$HOME/.config/godot"
@@ -129,28 +144,25 @@ jobs:
           [resource]
           export/android/java_sdk_path = "$JAVA_HOME"
           export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/debug_keystore = "$HOME/.android/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
           EOF
 
-      # 10. Import project resources
+      # 10. Import project
       - name: Import Godot project
         run: |
-          godot --version
-
-          godot --headless \
+          "$GODOT_EXEC" --headless \
             --editor \
             --path . \
             --import
 
-      # 11. Export APK
+      # 11. Build APK
       - name: Build Android APK
-        env:
-          GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ env.HOME }}/.android/debug.keystore
-          GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
-          GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
         run: |
           mkdir -p build
 
-          godot --headless \
+          "$GODOT_EXEC" --headless \
             --path . \
             --export-debug "Android" \
             build/Parashurama.apk
@@ -163,14 +175,24 @@ jobs:
       # 12. Validate APK
       - name: Validate APK
         run: |
+          echo "Checking APK file..."
+
           file build/Parashurama.apk
+
           unzip -t build/Parashurama.apk
+
+          echo "Verifying APK signature..."
+
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" \
+            verify --verbose build/Parashurama.apk
+
+          echo "APK validation successful."
 
           echo "APK size:"
           du -h build/Parashurama.apk
 
-      # 13. Upload APK artifact
-      - name: Upload APK
+      # 13. Upload APK
+      - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
           name: Parashurama-Android-APK
