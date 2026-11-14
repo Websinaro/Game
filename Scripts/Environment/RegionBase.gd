@@ -54,6 +54,50 @@ func grid_points(min_x: float, max_x: float, min_z: float, max_z: float, step: f
 		x += step
 	return out
 
+## Natural scatter: random "dart throwing" with a minimum distance between points (so tree crowns
+## never overlap) and a slow noise field that makes clumps and clearings (so it never looks like a
+## grid). clump 0 = even spread, 1 = strong patches. Deterministic (uses this region's rng).
+func scatter_points(min_x: float, max_x: float, min_z: float, max_z: float, min_dist: float, clump: float, circle_only: bool) -> Array[Vector2]:
+	var noise: FastNoiseLite = FastNoiseLite.new()
+	noise.seed = rng.randi()
+	noise.frequency = 0.03
+	var out: Array[Vector2] = []
+	var cells: Dictionary = {}
+	var attempts: int = mini(int((max_x - min_x) * (max_z - min_z) / (min_dist * min_dist) * 4.0), 60000)
+	for i in range(attempts):
+		var x: float = rng.randf_range(min_x, max_x)
+		var z: float = rng.randf_range(min_z, max_z)
+		if circle_only and not in_region(x, z):
+			continue
+		var density: float = clampf((0.5 + 0.5 * noise.get_noise_2d(x, z)) * 1.5, 0.05, 1.0)
+		if rng.randf() > lerpf(1.0, density, clump):
+			continue
+		var cx: int = floori(x / min_dist)
+		var cz: int = floori(z / min_dist)
+		var p: Vector2 = Vector2(x, z)
+		var free: bool = true
+		for ox in range(-1, 2):
+			for oz in range(-1, 2):
+				var key: Vector2i = Vector2i(cx + ox, cz + oz)
+				if not cells.has(key):
+					continue
+				for q: Vector2 in cells[key] as Array:
+					if q.distance_squared_to(p) < min_dist * min_dist:
+						free = false
+						break
+				if not free:
+					break
+			if not free:
+				break
+		if not free:
+			continue
+		var home: Vector2i = Vector2i(cx, cz)
+		if not cells.has(home):
+			cells[home] = []
+		(cells[home] as Array).append(p)
+		out.append(p)
+	return out
+
 func make_xform(x: float, z: float, yaw: float, uniform_scale: float, y_scale: float, y_offset: float) -> Transform3D:
 	var bas: Basis = Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(uniform_scale, uniform_scale * y_scale, uniform_scale))
 	return Transform3D(bas, Vector3(x, TerrainGenerator.height_at(x, z) + y_offset, z))

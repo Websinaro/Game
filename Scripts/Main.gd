@@ -32,8 +32,12 @@ func _ready() -> void:
 	player.camera_rig.snap_to_target()
 	world.set_tracked(player)
 	world.region_changed.connect(_on_region_changed)
+	GraphicsManager.end_monitoring()
+	msg.text = "Checking graphics..."
+	await GraphicsManager.run_startup_assessment(cinematic_camera, spawn)
+	if not GraphicsManager.preset_auto_changed.is_connected(_on_graphics_auto_changed):
+		GraphicsManager.preset_auto_changed.connect(_on_graphics_auto_changed)
 	hud.pause_requested.connect(pause_menu.toggle)
-	pause_menu.quality_changed.connect(world.set_low_quality)
 	loading.queue_free()
 	await intro.play(player, cinematic_camera, spawn)
 	player.controls_enabled = true
@@ -41,6 +45,12 @@ func _ready() -> void:
 	touch.visible = true
 	pause_menu.enabled_in_game = true
 	QuestManager.start_quest("lost_axe")
+	GraphicsManager.begin_monitoring()
+	hud.show_notification(GraphicsManager.get_selected_message())
+
+func _on_graphics_auto_changed(preset: int, _reason: String) -> void:
+	hud.show_notification("Graphics adjusted: " + GraphicsManager.preset_name(preset))
 
 func _on_region_changed(_region_id: String, region_name: String) -> void:
+	GraphicsManager.notify_context_change()
 	hud.show_region_banner(region_name)

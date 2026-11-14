@@ -5,11 +5,20 @@ extends RefCounted
 
 static var _cache: Dictionary = {}
 
+## Real low-poly forest trees (3 variants, bark + leaf-card textures). Procedural tree is the fallback.
+const TREE_GLB: String = "res://Assets/Models/forest_trees.glb"
+## Which node of forest_trees.glb each of the 3 scatter variants uses (3 and 4 are the realistic leafy trees).
+const TREE_NODES: Array[int] = [3, 4, 1]
+
 # ---- broadleaf forest tree (jackfruit / mango-like) --------------------------------
 static func get_tree_mesh(variant: int, detail: int) -> ArrayMesh:
 	var key: String = "tree_%d_%d" % [variant, detail]
 	if not _cache.has(key):
-		_cache[key] = build_broadleaf(50 + variant * 13, 8.0 + float(variant) * 1.5, detail)
+		var glb: ArrayMesh = GlbMesh.load_mesh(TREE_GLB, 14.0 + float(variant) * 1.5, {"only_node": "Tree%d" % TREE_NODES[variant % 3]})
+		if glb != null:
+			_cache[key] = glb
+		else:
+			_cache[key] = build_broadleaf(50 + variant * 13, 8.0 + float(variant) * 1.5, detail)
 	return _cache[key] as ArrayMesh
 
 static func build_broadleaf(seed_in: int, height: float, detail: int) -> ArrayMesh:
@@ -69,10 +78,19 @@ static func build_bush(seed_in: int, variant: int) -> ArrayMesh:
 	return mb.build(GameMaterials.vertex_color())
 
 # ---- grass / fern tufts -------------------------------------------------------------
+## Real grass cards: small clumps are cut out of the big realtime_grass patch (xz centres in
+## the model's own metres). If the file is missing the procedural tuft is used.
+const GRASS_GLB: String = "res://Assets/Models/realtime_grass.glb"
+const GRASS_CLUMPS: Array[Vector2] = [Vector2(-3.0, 1.0), Vector2(1.5, -5.3), Vector2(-0.4, -2.4)]
+
 static func get_tuft_mesh(variant: int) -> ArrayMesh:
 	var key: String = "tuft_%d" % variant
 	if not _cache.has(key):
-		_cache[key] = build_tuft(300 + variant * 5, 7 + variant * 2, 0.55 + float(variant) * 0.25)
+		var glb: ArrayMesh = GlbMesh.load_mesh(GRASS_GLB, 0.0, {"skip_materials": ["Material"], "clip_center": GRASS_CLUMPS[variant % 3], "clip_radius": 0.7, "scale_mult": 0.7 + float(variant) * 0.15})
+		if glb != null:
+			_cache[key] = glb
+		else:
+			_cache[key] = build_tuft(300 + variant * 5, 7 + variant * 2, 0.55 + float(variant) * 0.25)
 	return _cache[key] as ArrayMesh
 
 static func build_tuft(seed_in: int, blades: int, height: float) -> ArrayMesh:

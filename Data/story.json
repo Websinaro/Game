@@ -62,6 +62,14 @@
     "final_clue": {
       "title": "The Carved Relief",
       "body": "On the altar, a relief glows: a figure carrying an axe, climbing toward vast, mist-wrapped mountains, followed by a line of lamps.\n\nBelow it, the words: \"Not lost, but carried. Where the clouds drink the forests, the Keeper waits.\"\n\nWhoever took the axe did so deliberately - and took it east, toward the high mountains."
+    },
+    "beach_marks_hard": {
+      "title": "Marks in the Sand",
+      "body": "Two deep grooves cut across the sand, as if something heavy and sharp was dragged ashore and hauled inland. Beside them, footprints - too light for a warrior's.\n\nThe tide has softened the trail. It fades where the sand meets the green."
+    },
+    "tablet_full_hard": {
+      "title": "The Great Tablet",
+      "body": "The inscription is whole. Read it slowly - nothing here is said twice. Five pillars wait, set in a row from west to east."
     }
   },
   "phase_complete": {
@@ -73,5 +81,11 @@
     "First came the SEA, that gave and took away.",
     "Then the FOREST, that grew and kept its secrets.",
     "Last the MOUNTAIN, that watched all and forgot nothing."
-  ]
+  ],
+  "riddle": {
+    "west_end": "At the western end stands %s.",
+    "middle": "In the heart of the row stands %s.",
+    "east_end": "At the eastern end stands %s.",
+    "between": "%s stands between %s and %s."
+  }
 }

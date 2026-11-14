@@ -6,11 +6,42 @@
       "phase": 1,
       "start_notify": "Explore the beach. Something may have been left behind.",
       "objectives": [
-        { "id": "find_marks", "text": "Find the first clue to the missing axe.", "notify": "" },
-        { "id": "hidden_path", "text": "Follow the trail into the forest and find the hidden path.", "notify": "The marks lead to the forest. Look for anything unusual - a path may be hidden." },
-        { "id": "inscriptions", "text": "Search the forgotten sanctum for inscription fragments.", "required": 3, "notify": "A forgotten sanctum! Search its ruins for pieces of an inscription." },
-        { "id": "symbols", "text": "Set the three stone pillars to the right symbols.", "notify": "Read the great tablet, then turn the pillars." },
-        { "id": "altar", "text": "Enter the inner sanctum and examine the altar.", "notify": "The sanctum gate is open." }
+        {
+          "id": "find_marks",
+          "text": "Find the first clue to the missing axe.",
+          "notify": ""
+        },
+        {
+          "id": "hidden_path",
+          "text": "Follow the trail into the forest and find the hidden path.",
+          "notify": "The marks lead to the forest. Look for anything unusual - a path may be hidden."
+        },
+        {
+          "id": "inscriptions",
+          "text": "Search the forgotten sanctum for inscription fragments.",
+          "required": 3,
+          "notify": "A forgotten sanctum! Search its ruins for pieces of an inscription.",
+          "required_hard": 5
+        },
+        {
+          "id": "symbols",
+          "text": "Set the three stone pillars to the right symbols.",
+          "notify": "Read the great tablet, then turn the pillars.",
+          "text_hard": "Set the five stone pillars to the right symbols.",
+          "notify_hard": "Read the great tablet slowly. Every line matters; the order is not the one you may expect."
+        },
+        {
+          "id": "light_lamps",
+          "hard_only": true,
+          "text": "Light the three lamps inside the sanctum.",
+          "notify": "The gate is open, but the sanctum is utterly dark. Find the lamps and light them."
+        },
+        {
+          "id": "altar",
+          "text": "Enter the inner sanctum and examine the altar.",
+          "notify": "The sanctum gate is open.",
+          "notify_hard": "The lamps burn. The altar stands revealed."
+        }
       ]
     }
   ]

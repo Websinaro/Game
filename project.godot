@@ -1,5 +1,10 @@
 ; Engine configuration file.
-; PARASHURAMA - THE ORIGIN OF KERALA  (Phase 1: The Lost Axe)
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
 
 config_version=5
 
@@ -8,12 +13,15 @@ config_version=5
 config/name="Parashurama - The Origin of Kerala"
 config/description="Kerala-inspired mythological open-world adventure. Phase 1: The Lost Axe."
 run/main_scene="res://Scenes/Main.tscn"
-config/features=PackedStringArray("4.7", "Mobile")
 config/quit_on_go_back=false
+config/features=PackedStringArray("4.7", "Mobile")
 
 [autoload]
 
+DayNightCycle="*res://Scripts/Core/DayNightCycle.gd"
 GameInput="*res://Scripts/Core/GameInput.gd"
+GameSettings="*res://Scripts/Core/GameSettings.gd"
+GraphicsManager="*res://Scripts/Core/GraphicsManager.gd"
 QuestManager="*res://Scripts/Story/QuestManager.gd"
 StoryManager="*res://Scripts/Story/StoryManager.gd"
 
@@ -28,7 +36,6 @@ window/handheld/orientation=4
 [input_devices]
 
 pointing/emulate_touch_from_mouse=true
-pointing/emulate_mouse_from_touch=true
 
 [layer_names]
 
@@ -38,8 +45,7 @@ pointing/emulate_mouse_from_touch=true
 [rendering]
 
 renderer/rendering_method="mobile"
-renderer/rendering_method.mobile="mobile"
 textures/vram_compression/import_etc2_astc=true
-anti_aliasing/quality/msaa_3d=1
 lights_and_shadows/directional_shadow/size=2048
+anti_aliasing/quality/msaa_3d=1
 environment/defaults/default_clear_color=Color(0.52, 0.76, 0.91, 1)

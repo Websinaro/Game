@@ -35,6 +35,7 @@ func start_quest(quest_id: String) -> void:
 	_active_quest = quest_id
 	_index = 0
 	_progress = 0
+	_skip_inactive()
 	quest_started.emit(quest_id)
 	objective_changed.emit(get_objective_text())
 	var q: Dictionary = _quests[quest_id] as Dictionary
@@ -47,6 +48,22 @@ func _objectives() -> Array:
 		return []
 	var q: Dictionary = _quests[_active_quest] as Dictionary
 	return q.get("objectives", []) as Array
+
+## Any field can have a "_hard" twin (text_hard, required_hard, notify_hard) used on Hard.
+func _field(obj: Dictionary, key: String, default_value: Variant) -> Variant:
+	if GameSettings.is_hard() and obj.has(key + "_hard"):
+		return obj[key + "_hard"]
+	return obj.get(key, default_value)
+
+## Objectives flagged "hard_only": true are skipped on Normal.
+func _skip_inactive() -> void:
+	var objs: Array = _objectives()
+	while _index < objs.size():
+		var o: Dictionary = objs[_index] as Dictionary
+		if bool(o.get("hard_only", false)) and not GameSettings.is_hard():
+			_index += 1
+		else:
+			break
 
 func _current() -> Dictionary:
 	var objs: Array = _objectives()
@@ -67,8 +84,8 @@ func get_objective_text() -> String:
 	var obj: Dictionary = _current()
 	if obj.is_empty():
 		return ""
-	var text: String = str(obj.get("text", ""))
-	var required: int = int(obj.get("required", 1))
+	var text: String = str(_field(obj, "text", ""))
+	var required: int = int(_field(obj, "required", 1))
 	if required > 1:
 		text += " (%d/%d)" % [_progress, required]
 	return text
@@ -84,6 +101,7 @@ func complete_objective(objective_id: String) -> bool:
 	objective_completed.emit(finished_quest, objective_id)
 	_index += 1
 	_progress = 0
+	_skip_inactive()
 	var next_obj: Dictionary = _current()
 	if next_obj.is_empty():
 		_finished[finished_quest] = true
@@ -92,7 +110,7 @@ func complete_objective(objective_id: String) -> bool:
 		quest_completed.emit(finished_quest)
 		return true
 	objective_changed.emit(get_objective_text())
-	var note: String = str(next_obj.get("notify", ""))
+	var note: String = str(_field(next_obj, "notify", ""))
 	if note != "":
 		objective_notice.emit(note)
 	return true
@@ -101,7 +119,7 @@ func complete_objective(objective_id: String) -> bool:
 func progress_objective(objective_id: String) -> void:
 	if not is_objective_active(objective_id):
 		return
-	var required: int = int(_current().get("required", 1))
+	var required: int = int(_field(_current(), "required", 1))
 	_progress += 1
 	if _progress >= required:
 		complete_objective(objective_id)

@@ -20,6 +20,14 @@ var _complete_banner: Label
 var _complete_sub: Label
 var _notify_tween: Tween = null
 var _region_tween: Tween = null
+var _stamina_root: Control
+var _stamina_fill: ColorRect
+var _stamina_label: Label
+var _stamina_alpha_target: float = 0.0
+var _dark_overlay: TextureRect
+
+const STAMINA_BAR_WIDTH: float = 230.0
+const STAMINA_BAR_HEIGHT: float = 14.0
 
 static func make_style(bg: Color, border: Color, radius: int, margin: float) -> StyleBoxFlat:
 	var sb: StyleBoxFlat = StyleBoxFlat.new()
@@ -61,11 +69,68 @@ func _ready() -> void:
 	_build_bottom()
 	_build_lore_panel()
 	_build_complete_overlay()
+	_build_stamina_bar()
+	_build_darkness_overlay()
 	QuestManager.objective_changed.connect(_on_objective_changed)
 	QuestManager.objective_notice.connect(show_notification)
 	StoryManager.lore_requested.connect(_on_lore_requested)
 	StoryManager.phase_complete.connect(_on_phase_complete)
 	GameInput.interact_target_changed.connect(_on_interact_target)
+	GameInput.stamina_changed.connect(_on_stamina_changed)
+	GameInput.darkness_changed.connect(_on_darkness_changed)
+	GameInput.notice.connect(show_notification)
+
+func _process(delta: float) -> void:
+	if _stamina_root != null:
+		_stamina_root.modulate.a = move_toward(_stamina_root.modulate.a, _stamina_alpha_target, delta * 3.0)
+
+func _build_stamina_bar() -> void:
+	_stamina_root = Control.new()
+	_stamina_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_root.position = Vector2(22.0, 16.0)
+	_stamina_root.size = Vector2(STAMINA_BAR_WIDTH, 40.0)
+	_stamina_root.modulate.a = 0.0
+	add_child(_stamina_root)
+	_stamina_label = make_label("STAMINA", 15, Color(0.95, 0.9, 0.7))
+	_stamina_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	_stamina_label.position = Vector2(0.0, 0.0)
+	_stamina_label.custom_minimum_size = Vector2(STAMINA_BAR_WIDTH, 0.0)
+	_stamina_root.add_child(_stamina_label)
+	var back: ColorRect = ColorRect.new()
+	back.color = Color(0.0, 0.0, 0.0, 0.55)
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	back.position = Vector2(0.0, 24.0)
+	back.size = Vector2(STAMINA_BAR_WIDTH, STAMINA_BAR_HEIGHT + 4.0)
+	_stamina_root.add_child(back)
+	_stamina_fill = ColorRect.new()
+	_stamina_fill.color = Color(0.55, 0.85, 0.35)
+	_stamina_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stamina_fill.position = Vector2(2.0, 26.0)
+	_stamina_fill.size = Vector2(STAMINA_BAR_WIDTH - 4.0, STAMINA_BAR_HEIGHT)
+	_stamina_root.add_child(_stamina_fill)
+
+func _build_darkness_overlay() -> void:
+	var grad: Gradient = Gradient.new()
+	grad.offsets = PackedFloat32Array([0.0, 0.3, 1.0])
+	grad.colors = PackedColorArray([Color(0.0, 0.0, 0.0, 0.0), Color(0.0, 0.0, 0.0, 0.55), Color(0.0, 0.0, 0.0, 1.0)])
+	var gt: GradientTexture2D = GradientTexture2D.new()
+	gt.gradient = grad
+	gt.fill = GradientTexture2D.FILL_RADIAL
+	gt.fill_from = Vector2(0.5, 0.5)
+	gt.fill_to = Vector2(1.0, 0.5)
+	gt.width = 128
+	gt.height = 128
+	_dark_overlay = TextureRect.new()
+	_dark_overlay.texture = gt
+	_dark_overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_dark_overlay.stretch_mode = TextureRect.STRETCH_SCALE
+	_dark_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_dark_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_dark_overlay.modulate.a = 0.0
+	_dark_overlay.visible = false
+	add_child(_dark_overlay)
+	# keep the overlay below the lore panel and the phase-complete screen
+	move_child(_dark_overlay, 0)
 
 func _build_objective() -> void:
 	var panel: PanelContainer = PanelContainer.new()
@@ -217,6 +282,21 @@ func _on_objective_changed(text_in: String) -> void:
 	_objective_label.text = text_in
 	var panel: Control = _objective_label.get_meta("panel") as Control
 	panel.visible = text_in != ""
+
+func _on_stamina_changed(ratio: float, tired: bool) -> void:
+	var w: float = (STAMINA_BAR_WIDTH - 4.0) * clampf(ratio, 0.0, 1.0)
+	_stamina_fill.size.x = w
+	if tired:
+		_stamina_fill.color = Color(0.9, 0.3, 0.2)
+		_stamina_label.text = "TIRED - catch your breath"
+	else:
+		_stamina_fill.color = Color(0.55, 0.85, 0.35).lerp(Color(0.95, 0.75, 0.2), 1.0 - clampf(ratio * 1.6, 0.0, 1.0))
+		_stamina_label.text = "STAMINA"
+	_stamina_alpha_target = 1.0 if (tired or ratio < 0.995) else 0.0
+
+func _on_darkness_changed(amount: float) -> void:
+	_dark_overlay.visible = amount > 0.01
+	_dark_overlay.modulate.a = clampf(amount, 0.0, 1.0)
 
 func _on_interact_target(prompt: String) -> void:
 	_prompt_label.text = "" if prompt == "" else "USE: " + prompt

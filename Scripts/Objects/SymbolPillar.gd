@@ -1,18 +1,23 @@
 class_name SymbolPillar
 extends Interactable
-## Puzzle pillar. Each use cycles the floating symbol: SEA, FOREST, MOUNTAIN, AXE.
+## Puzzle pillar. Each use cycles the floating symbol. AXE is the blank / unset state.
+## Normal cycles 4 symbols (SEA, FOREST, MOUNTAIN, AXE); Hard cycles all 6 (see symbol_count).
 ## Dormant until the inscription fragments have been collected.
+## A wrong complete answer calls flash_wrong(): pillars turn red, reset to AXE and go dead for a while.
 
 signal symbol_changed(pillar_index: int, symbol: int)
 
-const NAMES: Array[String] = ["SEA", "FOREST", "MOUNTAIN", "AXE"]
-const COLORS: Array[Color] = [Color(0.30, 0.70, 1.00), Color(0.40, 0.95, 0.40), Color(1.00, 0.75, 0.30), Color(1.00, 0.35, 0.30)]
+const NAMES: Array[String] = ["SEA", "FOREST", "MOUNTAIN", "AXE", "RAIN", "SUN"]
+const COLORS: Array[Color] = [Color(0.30, 0.70, 1.00), Color(0.40, 0.95, 0.40), Color(1.00, 0.75, 0.30), Color(1.00, 0.35, 0.30), Color(0.70, 0.60, 1.00), Color(1.00, 0.92, 0.35)]
+const UNSET: int = 3
 
 @export var pillar_index: int = 0
+@export var symbol_count: int = 4   ## how many symbols the stone cycles through (4 = Normal, 6 = Hard)
 
 var symbol: int = 3
 var dormant: bool = true
 var locked: bool = false
+var _lockout_until_ms: int = 0
 var _icon: MeshInstance3D = null
 var _label: Label3D = null
 
@@ -53,9 +58,14 @@ func _ready() -> void:
 	add_child(_label)
 	_refresh()
 
+func _is_locked_out() -> bool:
+	return Time.get_ticks_msec() < _lockout_until_ms
+
 func get_prompt() -> String:
 	if dormant:
 		return "Examine the pillar"
+	if _is_locked_out():
+		return "The stone is settling..."
 	return "Turn the stone (%s)" % NAMES[symbol]
 
 func set_dormant(value: bool) -> void:
@@ -79,12 +89,24 @@ func interact(_player: Node3D) -> void:
 		return
 	if locked:
 		return
-	symbol = (symbol + 1) % NAMES.size()
+	if _is_locked_out():
+		GameInput.notice.emit("The pillar is still settling. Wait.")
+		return
+	symbol = (symbol + 1) % symbol_count
 	_refresh()
 	_icon.scale = Vector3.ONE * 1.5
 	var tw: Tween = create_tween()
 	tw.tween_property(_icon, "scale", Vector3.ONE, 0.25)
 	symbol_changed.emit(pillar_index, symbol)
+
+## Wrong answer: glow red, reset to the blank symbol, and stay dead for lockout_seconds.
+func flash_wrong(lockout_seconds: float) -> void:
+	_lockout_until_ms = Time.get_ticks_msec() + int(lockout_seconds * 1000.0)
+	_icon.mesh = _build_icon(symbol).build(GameMaterials.emissive(Color(1.0, 0.15, 0.1), 3.0))
+	_label.modulate = Color(1.0, 0.2, 0.15)
+	var tw: Tween = create_tween()
+	tw.tween_interval(0.9)
+	tw.tween_callback(set_symbol.bind(UNSET))
 
 func _refresh() -> void:
 	var col: Color = Color(0.45, 0.45, 0.5) if dormant else COLORS[symbol]
@@ -112,6 +134,16 @@ func _build_icon(sym: int) -> MeshBuilder:
 		2:
 			mb.add_cylinder(Transform3D(Basis(Vector3.UP, PI * 0.25), Vector3(-0.22, -0.3, 0.0)), 0.34, 0.0, 0.55, 4, c, c, false, false)
 			mb.add_cylinder(Transform3D(Basis(Vector3.UP, PI * 0.25), Vector3(0.2, -0.3, 0.0)), 0.44, 0.0, 0.8, 4, c, c, false, false)
+		4:
+			mb.add_sphere(Transform3D(Basis.IDENTITY, Vector3(-0.12, 0.18, 0.0)), Vector3(0.26, 0.13, 0.08), 3, 8, c, c)
+			mb.add_sphere(Transform3D(Basis.IDENTITY, Vector3(0.14, 0.24, 0.0)), Vector3(0.22, 0.12, 0.08), 3, 8, c, c)
+			for i in range(3):
+				mb.add_box(Transform3D(Basis.IDENTITY, Vector3(-0.2 + float(i) * 0.2, -0.12, 0.0)), Vector3(0.05, 0.22, 0.05), c)
+		5:
+			mb.add_sphere(Transform3D(Basis.IDENTITY, Vector3.ZERO), Vector3(0.2, 0.2, 0.08), 4, 8, c, c)
+			for i in range(8):
+				var ang: float = TAU * float(i) / 8.0
+				mb.add_box(Transform3D(Basis(Vector3(0.0, 0.0, 1.0), ang), Vector3(cos(ang) * 0.38, sin(ang) * 0.38, 0.0)), Vector3(0.18, 0.06, 0.05), c)
 		_:
 			mb.add_box(Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, 0.0)), Vector3(0.07, 0.85, 0.07), c)
 			mb.add_box(Transform3D(Basis.IDENTITY, Vector3(0.2, 0.22, 0.0)), Vector3(0.36, 0.3, 0.06), c)

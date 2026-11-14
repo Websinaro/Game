@@ -14,7 +14,7 @@ func _populate() -> void:
 	WorldRegistry.add_exclusion(-66.0, -8.0, 4.0)       # marked tree
 	WorldRegistry.add_exclusion(GAP_X, GAP_Z, 13.0)     # vine barrier
 	var r: float = region_radius
-	var tree_pts: Array[Vector2] = grid_points(region_center.x - r, region_center.x + r, region_center.y - r, region_center.y + r, 5.5, 2.2, 0.62, true)
+	var tree_pts: Array[Vector2] = scatter_points(region_center.x - r, region_center.x + r, region_center.y - r, region_center.y + r, 9.5, 0.55, true)
 	var trees: Array[Vector2] = []
 	for p: Vector2 in filter_placeable(tree_pts, 2.4, 0.45, 3.8):
 		if p.y > -26.0 and p.y < 36.0:
@@ -22,13 +22,13 @@ func _populate() -> void:
 	add_trees(trees)
 	var palm_pts: Array[Vector2] = grid_points(region_center.x - r, region_center.x + r, 18.0, 40.0, 11.0, 4.0, 0.45, true)
 	add_palms(filter_placeable(palm_pts, 2.0, 0.4, 3.8))
-	var bush_pts: Array[Vector2] = grid_points(region_center.x - r, region_center.x + r, region_center.y - r, 34.0, 4.0, 1.8, 0.45, true)
+	var bush_pts: Array[Vector2] = scatter_points(region_center.x - r, region_center.x + r, region_center.y - r, 34.0, 4.5, 0.6, true)
 	var bushes: Array[Vector2] = []
 	for p2: Vector2 in filter_placeable(bush_pts, 2.3, 0.5, 2.4):
 		if p2.y > -27.0:
 			bushes.append(p2)
 	add_bushes(bushes)
-	var tuft_pts: Array[Vector2] = grid_points(region_center.x - r, region_center.x + r, -27.0, 36.0, 2.3, 1.0, 0.55, true)
+	var tuft_pts: Array[Vector2] = scatter_points(region_center.x - r, region_center.x + r, -27.0, 36.0, 2.6, 0.9, true)
 	add_tufts(filter_placeable(tuft_pts, 2.3, 0.55, 0.0))
 	var banana_pts: Array[Vector2] = grid_points(region_center.x - r, region_center.x + r, -10.0, 36.0, 14.0, 4.0, 0.4, true)
 	add_bananas(filter_placeable(banana_pts, 2.3, 0.4, 3.5))
@@ -40,7 +40,17 @@ func _populate() -> void:
 	_barrier.position = world_pos(GAP_X, GAP_Z, -0.2)
 	add_child(_barrier)
 	_build_lamps()
+	_build_forest_atmosphere()
 	QuestManager.objective_completed.connect(_on_objective_completed)
+
+
+func _build_forest_atmosphere() -> void:
+	var atmosphere: Node3D = Node3D.new()
+	atmosphere.name = "ForestAtmosphere"
+	atmosphere.set_script(load("res://Scripts/Environment/ForestAtmosphere.gd"))
+	add_child(atmosphere)
+	atmosphere.call("build", region_center, region_radius)
+
 
 func _marked_tree() -> void:
 	var tree: StoryInteractable = StoryInteractable.new()
@@ -51,7 +61,7 @@ func _marked_tree() -> void:
 	tree.required_objective = "hidden_path"
 	tree.locked_lore_id = "tree_locked"
 	tree.prompt_text = "Touch the glowing sigil"
-	tree.interact_radius = 3.4
+	tree.interact_radius = GameSettings.pick_f(Tuning.TREE_INTERACT_RADIUS_NORMAL, Tuning.TREE_INTERACT_RADIUS_HARD)
 	tree.position = world_pos(-66.0, -8.0, -0.1)
 	tree.rotation.y = -PI * 0.5
 	add_child(tree)

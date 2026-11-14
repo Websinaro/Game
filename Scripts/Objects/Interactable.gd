@@ -34,7 +34,7 @@ func _process(delta: float) -> void:
 	if _beacon == null:
 		return
 	_beacon_time += delta
-	_beacon.visible = enabled
+	_beacon.visible = enabled and not GameSettings.pick_b(Tuning.HIDE_BEACONS_NORMAL, Tuning.HIDE_BEACONS_HARD)
 	_beacon.position.y = beacon_height + sin(_beacon_time * 2.0) * 0.12
 	_beacon.rotate_y(delta * 1.6)
 

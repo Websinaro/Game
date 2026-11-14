@@ -26,7 +26,7 @@ func _populate() -> void:
 	add_bananas(filter_placeable(banana_pts, 1.5, 0.5, 2.0))
 	var bush_pts: Array[Vector2] = grid_points(region_center.x - 28.0, region_center.x + 28.0, region_center.y - 28.0, region_center.y + 28.0, 6.0, 2.0, 0.35, true)
 	add_bushes(filter_placeable(bush_pts, 1.5, 0.5, 2.5))
-	var tuft_pts: Array[Vector2] = grid_points(region_center.x - 28.0, region_center.x + 28.0, region_center.y - 28.0, region_center.y + 28.0, 2.6, 1.0, 0.4, true)
+	var tuft_pts: Array[Vector2] = grid_points(region_center.x - 28.0, region_center.x + 28.0, region_center.y - 28.0, region_center.y + 28.0, 2.1, 0.9, 0.45, true)
 	add_tufts(filter_placeable(tuft_pts, 1.5, 0.5, 2.4))
 
 func _house(x: float, z: float, variant: int) -> void:

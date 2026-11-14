@@ -29,6 +29,10 @@ static func add_multimesh(parent: Node3D, mesh: Mesh, xforms: Array, chunk_size:
 		inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if cast_shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		inst.visibility_range_begin = vis_begin
 		inst.visibility_range_end = vis_end
+		# WorldManager scales these ranges down on Low graphics.
+		inst.set_meta("vis_begin_high", vis_begin)
+		inst.set_meta("vis_end_high", vis_end)
+		inst.add_to_group("scatter_grass" if base_name.begins_with("Tufts") else "scatter_chunks")
 		parent.add_child(inst)
 
 ## One StaticBody3D holding many shapes that share a single Shape3D resource.

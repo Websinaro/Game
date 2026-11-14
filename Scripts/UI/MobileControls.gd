@@ -1,19 +1,28 @@
 class_name MobileControls
 extends Control
 ## Multi-touch controls, drawn in code.
-##  LEFT: floating virtual joystick (touch anywhere on the left side).
-##  RIGHT: Jump button, Use (interact) button, and a camera-drag area (pinch = zoom).
+##  LEFT:  FIXED virtual joystick (always drawn at the same bottom-left spot). A touch only
+##         grabs the stick when it starts inside a generous radius around the fixed base.
+##  RIGHT: Jump button, Use (interact) button, and a camera-drag area (two fingers = pinch zoom).
 ## Drives Input actions (move_*, run, jump, interact) and GameInput.look_delta / zoom_delta.
 ## With emulate_touch_from_mouse enabled, the mouse also works in the editor.
+## All positions are canvas pixels (the project stretches to a 720 px design height).
 
-const JOY_RADIUS: float = 95.0
-const TOP_MARGIN: float = 84.0
+# ---- joystick layout: tweak these ----------------------------------------------------------
+const JOY_MARGIN_LEFT: float = 70.0          # gap between screen left edge and the base circle
+const JOY_MARGIN_BOTTOM: float = 60.0        # gap between screen bottom edge and the base circle
+const JOY_RADIUS: float = 95.0               # base radius = max knob travel
+const KNOB_RADIUS: float = 40.0
+const JOY_TOUCH_RADIUS_MULT: float = 1.7     # a touch starts the stick inside JOY_RADIUS * this
+const DEAD_ZONE: float = 0.12                # fraction of the radius that is ignored
+const RUN_THRESHOLD: float = 0.85            # push beyond this fraction to run
+# ---- other layout --------------------------------------------------------------------------
+const TOP_MARGIN: float = 84.0               # touches above this are ignored (HUD / pause button)
 const BTN_RADIUS: float = 64.0
-const RUN_THRESHOLD: float = 0.85
+const CAMERA_MIN_X_FRACTION: float = 0.42    # camera drag only starts right of this screen fraction
 
 var _joy_touch: int = -1
-var _joy_origin: Vector2 = Vector2.ZERO
-var _joy_pos: Vector2 = Vector2.ZERO
+var _knob_offset: Vector2 = Vector2.ZERO     # knob position relative to the fixed base centre
 var _jump_touch: int = -1
 var _use_touch: int = -1
 var _cam_touches: Dictionary = {}
@@ -42,14 +51,16 @@ func _use_center() -> Vector2:
 	var s: Vector2 = _screen()
 	return Vector2(s.x - 270.0, s.y - 95.0)
 
-func _idle_joy_center() -> Vector2:
+## Fixed joystick base centre (always the same place for a given screen size).
+func _joy_center() -> Vector2:
 	var s: Vector2 = _screen()
-	return Vector2(JOY_RADIUS + 70.0, s.y - JOY_RADIUS - 60.0)
+	return Vector2(JOY_MARGIN_LEFT + JOY_RADIUS, s.y - JOY_MARGIN_BOTTOM - JOY_RADIUS)
 
 func _reset_state() -> void:
 	_joy_touch = -1
 	_jump_touch = -1
 	_use_touch = -1
+	_knob_offset = Vector2.ZERO
 	_cam_touches.clear()
 	_set_axes(Vector2.ZERO)
 	Input.action_release("run")
@@ -71,17 +82,16 @@ func _input(event: InputEvent) -> void:
 func _touch_down(index: int, pos: Vector2) -> void:
 	if GameInput.ui_blocking or pos.y < TOP_MARGIN:
 		return
-	if pos.distance_to(_jump_center()) <= BTN_RADIUS * 1.25 and _jump_touch == -1:
+	if _jump_touch == -1 and pos.distance_to(_jump_center()) <= BTN_RADIUS * 1.25:
 		_jump_touch = index
 		Input.action_press("jump")
-	elif pos.distance_to(_use_center()) <= BTN_RADIUS * 1.15 and _use_touch == -1:
+	elif _use_touch == -1 and pos.distance_to(_use_center()) <= BTN_RADIUS * 1.15:
 		_use_touch = index
 		Input.action_press("interact")
-	elif pos.x < _screen().x * 0.42 and _joy_touch == -1:
+	elif _joy_touch == -1 and pos.distance_to(_joy_center()) <= JOY_RADIUS * JOY_TOUCH_RADIUS_MULT:
 		_joy_touch = index
-		_joy_origin = pos
-		_joy_pos = pos
-	elif pos.x >= _screen().x * 0.42:
+		_update_stick(pos)
+	elif pos.x >= _screen().x * CAMERA_MIN_X_FRACTION:
 		_cam_touches[index] = pos
 		if _cam_touches.size() == 2:
 			_pinch_last = _pinch_distance()
@@ -90,6 +100,7 @@ func _touch_down(index: int, pos: Vector2) -> void:
 func _touch_up(index: int) -> void:
 	if index == _joy_touch:
 		_joy_touch = -1
+		_knob_offset = Vector2.ZERO
 		_set_axes(Vector2.ZERO)
 		Input.action_release("run")
 	elif index == _jump_touch:
@@ -100,6 +111,8 @@ func _touch_up(index: int) -> void:
 		_release_later("interact")
 	elif _cam_touches.has(index):
 		_cam_touches.erase(index)
+		if _cam_touches.size() == 1:
+			_pinch_last = 0.0
 	queue_redraw()
 
 func _release_later(action_name: String) -> void:
@@ -108,17 +121,7 @@ func _release_later(action_name: String) -> void:
 
 func _touch_drag(index: int, pos: Vector2, rel: Vector2) -> void:
 	if index == _joy_touch:
-		_joy_pos = pos
-		var v: Vector2 = (pos - _joy_origin) / JOY_RADIUS
-		if v.length() > 1.0:
-			v = v.normalized()
-			_joy_origin = pos - v * JOY_RADIUS
-		_set_axes(v)
-		if v.length() >= RUN_THRESHOLD:
-			Input.action_press("run")
-		else:
-			Input.action_release("run")
-		queue_redraw()
+		_update_stick(pos)
 	elif _cam_touches.has(index):
 		_cam_touches[index] = pos
 		if _cam_touches.size() >= 2:
@@ -128,22 +131,39 @@ func _touch_drag(index: int, pos: Vector2, rel: Vector2) -> void:
 		else:
 			GameInput.look_delta.emit(rel)
 
+## Moves the knob towards the finger (clamped to the base radius) and drives the actions.
+func _update_stick(pos: Vector2) -> void:
+	var v: Vector2 = (pos - _joy_center()) / JOY_RADIUS
+	if v.length() > 1.0:
+		v = v.normalized()
+	_knob_offset = v * JOY_RADIUS
+	_set_axes(v)
+	if v.length() >= RUN_THRESHOLD:
+		Input.action_press("run")
+	else:
+		Input.action_release("run")
+	queue_redraw()
+
 func _pinch_distance() -> float:
 	var pts: Array = _cam_touches.values()
 	if pts.size() < 2:
 		return 0.0
 	return (pts[0] as Vector2).distance_to(pts[1] as Vector2)
 
+## Radial dead zone with re-scaling, so movement ramps up smoothly from the dead-zone edge.
 func _set_axes(v: Vector2) -> void:
-	var dz: float = 0.12
-	_axis("move_left", "move_right", v.x, dz)
-	_axis("move_forward", "move_back", v.y, dz)
+	var mag: float = v.length()
+	var out: Vector2 = Vector2.ZERO
+	if mag > DEAD_ZONE:
+		out = v.normalized() * clampf((mag - DEAD_ZONE) / (1.0 - DEAD_ZONE), 0.0, 1.0)
+	_axis("move_left", "move_right", out.x)
+	_axis("move_forward", "move_back", out.y)
 
-func _axis(neg: String, pos_action: String, value: float, dead: float) -> void:
-	if value < -dead:
+func _axis(neg: String, pos_action: String, value: float) -> void:
+	if value < -0.001:
 		Input.action_press(neg, minf(-value, 1.0))
 		Input.action_release(pos_action)
-	elif value > dead:
+	elif value > 0.001:
 		Input.action_press(pos_action, minf(value, 1.0))
 		Input.action_release(neg)
 	else:
@@ -158,13 +178,15 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var cream: Color = Color(1.0, 0.95, 0.8)
 	var gold: Color = Color(0.95, 0.75, 0.3)
-	# joystick
-	var base_c: Vector2 = _joy_origin if _joy_touch != -1 else _idle_joy_center()
-	var knob_c: Vector2 = _joy_pos if _joy_touch != -1 else base_c
-	var a: float = 0.45 if _joy_touch != -1 else 0.22
+	# fixed joystick: base + dead-zone ring + knob
+	var base_c: Vector2 = _joy_center()
+	var active: bool = _joy_touch != -1
+	var a: float = 0.45 if active else 0.26
 	draw_circle(base_c, JOY_RADIUS, Color(0.0, 0.0, 0.0, a * 0.6))
 	draw_arc(base_c, JOY_RADIUS, 0.0, TAU, 48, Color(cream.r, cream.g, cream.b, a + 0.2), 3.0)
-	draw_circle(knob_c, 40.0, Color(cream.r, cream.g, cream.b, a + 0.25))
+	draw_arc(base_c, JOY_RADIUS * RUN_THRESHOLD, 0.0, TAU, 48, Color(cream.r, cream.g, cream.b, 0.12), 2.0)
+	draw_arc(base_c, JOY_RADIUS * DEAD_ZONE, 0.0, TAU, 20, Color(cream.r, cream.g, cream.b, 0.15), 2.0)
+	draw_circle(base_c + _knob_offset, KNOB_RADIUS, Color(cream.r, cream.g, cream.b, a + 0.25))
 	# jump
 	var jc: Vector2 = _jump_center()
 	var jp: bool = _jump_touch != -1
@@ -175,7 +197,10 @@ func _draw() -> void:
 	var uc: Vector2 = _use_center()
 	var up: bool = _use_touch != -1
 	var glow: float = 0.5 + 0.5 * sin(_pulse) if _use_available else 0.0
-	draw_circle(uc, BTN_RADIUS * 0.85, Color(0.35, 0.2, 0.05, 0.75 if _use_available else 0.28) if not up else Color(0.6, 0.35, 0.1, 0.9))
+	var use_fill: Color = Color(0.35, 0.2, 0.05, 0.75 if _use_available else 0.28)
+	if up:
+		use_fill = Color(0.6, 0.35, 0.1, 0.9)
+	draw_circle(uc, BTN_RADIUS * 0.85, use_fill)
 	draw_arc(uc, BTN_RADIUS * 0.85 + 2.0 + glow * 4.0, 0.0, TAU, 40, Color(gold.r, gold.g, gold.b, 0.35 + 0.6 * float(_use_available)), 3.0 + glow * 2.0)
 	_label(uc, "USE", 22, cream if _use_available else Color(cream.r, cream.g, cream.b, 0.5))
 

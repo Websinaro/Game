@@ -13,6 +13,15 @@ signal zoom_delta(amount: float)
 signal interact_target_changed(prompt: String)
 @warning_ignore("unused_signal")
 signal touch_reset()
+## Player stamina for the HUD bar (ratio 0..1, tired flag).
+@warning_ignore("unused_signal")
+signal stamina_changed(ratio: float, tired: bool)
+## Screen darkness 0..1 (unlit sanctum). Drawn by the HUD.
+@warning_ignore("unused_signal")
+signal darkness_changed(amount: float)
+## Short on-screen message from gameplay systems (hazards, puzzle feedback).
+@warning_ignore("unused_signal")
+signal notice(text: String)
 
 ## True while a modal panel (lore, phase complete) is open; touch controls ignore new touches.
 var ui_blocking: bool = false

@@ -93,7 +93,7 @@ func _build_tree() -> void:
 		pts.append(Vector3(cos(a) * r, 1.6 + sin(a) * r, -0.3))
 		rad.append(0.018)
 	mb.add_tube(pts, rad, 4, GLOW, GLOW)
-	add_mesh_child(mb.build(GameMaterials.emissive(GLOW, 2.5)), "Sigil")
+	add_mesh_child(mb.build(GameMaterials.emissive(GLOW, GameSettings.pick_f(Tuning.TREE_SIGIL_ENERGY_NORMAL, Tuning.TREE_SIGIL_ENERGY_HARD))), "Sigil")
 	var body: StaticBody3D = StaticBody3D.new()
 	var cs: CollisionShape3D = CollisionShape3D.new()
 	var shape: CylinderShape3D = CylinderShape3D.new()

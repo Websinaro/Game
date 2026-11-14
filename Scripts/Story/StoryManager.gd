@@ -20,6 +20,8 @@ func get_intro() -> Dictionary:
 
 func get_lore(lore_id: String) -> Dictionary:
 	var lore: Dictionary = _story.get("lore", {}) as Dictionary
+	if GameSettings.is_hard() and lore.has(lore_id + "_hard"):
+		return lore[lore_id + "_hard"] as Dictionary
 	return lore.get(lore_id, {}) as Dictionary
 
 func show_lore(lore_id: String, extra_body: String = "") -> void:
@@ -51,3 +53,6 @@ func _on_quest_completed(_quest_id: String) -> void:
 
 func get_tablet_lines() -> Array:
 	return _story.get("tablet_lines", []) as Array
+
+func get_riddle() -> Dictionary:
+	return _story.get("riddle", {}) as Dictionary

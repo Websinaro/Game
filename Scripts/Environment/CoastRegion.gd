@@ -7,12 +7,13 @@ func _populate() -> void:
 	WorldRegistry.add_exclusion(0.0, 47.0, 7.0)    # player spawn
 	WorldRegistry.add_exclusion(-14.0, 47.0, 5.0)  # beach marks
 	WorldRegistry.add_exclusion(26.0, 49.0, 6.0)   # boat
+	WorldRegistry.add_exclusion(-38.0, 42.0, 6.0)  # beach hut
 	_hero_palms()
 	var palm_pts: Array[Vector2] = grid_points(-105.0, 105.0, 28.0, 45.0, 7.0, 3.0, 0.5, false)
 	add_palms(filter_placeable(palm_pts, 1.3, 0.45, 3.5))
 	var bush_pts: Array[Vector2] = grid_points(-100.0, 100.0, 33.0, 44.0, 5.0, 2.0, 0.5, false)
 	add_bushes(filter_placeable(bush_pts, 1.5, 0.5, 3.0))
-	var tuft_pts: Array[Vector2] = grid_points(-100.0, 100.0, 30.0, 41.0, 2.4, 1.0, 0.45, false)
+	var tuft_pts: Array[Vector2] = scatter_points(-100.0, 100.0, 30.0, 41.0, 3.2, 0.9, false)
 	add_tufts(filter_placeable(tuft_pts, 1.5, 0.5, 2.5))
 	var banana_pts: Array[Vector2] = grid_points(-95.0, 95.0, 30.0, 40.0, 18.0, 5.0, 0.4, false)
 	add_bananas(filter_placeable(banana_pts, 1.5, 0.4, 3.5))
@@ -20,6 +21,7 @@ func _populate() -> void:
 	add_rocks(filter_placeable(rock_pts, -0.4, 0.8, 0.0), 0.6, 1.5, false)
 	_driftwood()
 	_boat()
+	_beach_hut()
 	_sea_stacks()
 	_beach_marks()
 
@@ -99,6 +101,45 @@ func _boat() -> void:
 	cs.position = Vector3(0.0, 0.6, 0.0)
 	body.add_child(cs)
 	boat.add_child(body)
+
+## Beach hut on the sand (your Point Reyes scan: driftwood shelter on a sand pad, reduced to
+## about 26k triangles and a 2048 texture). Without the file the thatched Kerala house is used.
+const HUT_GLB: String = "res://Assets/Models/beach_hut.glb"
+
+func _beach_hut() -> void:
+	var hut: Node3D = Node3D.new()
+	hut.name = "BeachHut"
+	# The sand pad is flat but the beach slopes: sit on the average height and tilt to the slope.
+	var hx: float = -38.0
+	var hz: float = 42.0
+	var ring: float = 0.0
+	for k in range(8):
+		var ang: float = TAU * float(k) / 8.0
+		ring += TerrainGenerator.height_at(hx + cos(ang) * 2.6, hz + sin(ang) * 2.6)
+	var gy: float = (ring / 8.0 + TerrainGenerator.height_at(hx, hz)) * 0.5
+	var nrm: Vector3 = Vector3(TerrainGenerator.height_at(hx - 1.5, hz) - TerrainGenerator.height_at(hx + 1.5, hz), 3.0, TerrainGenerator.height_at(hx, hz - 1.5) - TerrainGenerator.height_at(hx, hz + 1.5)).normalized()
+	hut.position = Vector3(hx, gy - 0.22, hz)
+	hut.basis = Basis(Quaternion(Vector3.UP, nrm)) * Basis(Vector3.UP, 0.25)
+	add_child(hut)
+	var mi: MeshInstance3D = MeshInstance3D.new()
+	var glb: ArrayMesh = GlbMesh.load_mesh(HUT_GLB, 2.8)
+	var half: Vector3 = Vector3(2.4, 1.6, 2.2)
+	if glb != null:
+		mi.mesh = glb
+		half = glb.get_aabb().size * Vector3(0.25, 0.35, 0.25)
+	else:
+		mi.mesh = KeralaHouse.get_mesh(1)
+		mi.scale = Vector3(0.6, 0.6, 0.6)
+		half = Vector3(2.4, 2.0, 2.2)
+	hut.add_child(mi)
+	var body: StaticBody3D = StaticBody3D.new()
+	var cs: CollisionShape3D = CollisionShape3D.new()
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = Vector3(half.x * 2.0, half.y * 2.0, half.z * 2.0)
+	cs.shape = shape
+	cs.position = Vector3(0.0, half.y, 0.0)
+	body.add_child(cs)
+	hut.add_child(body)
 
 func _sea_stacks() -> void:
 	var spots: Array[Vector3] = [Vector3(-30.0, 8.0, 74.0), Vector3(45.0, 6.0, 82.0), Vector3(-72.0, 9.0, 90.0), Vector3(78.0, 7.0, 76.0), Vector3(5.0, 10.0, 105.0)]

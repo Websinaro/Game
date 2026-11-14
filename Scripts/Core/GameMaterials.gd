@@ -4,6 +4,13 @@ extends RefCounted
 ## so swapping the look of the game means editing the .tres files in Assets/Materials.
 
 static var _cache: Dictionary = {}
+static var _low_quality: bool = false
+
+## Grass blades sink into the ground between these distances (metres). Low quality shrinks them.
+const GRASS_FADE_START: float = 36.0
+const GRASS_FADE_END: float = 52.0
+const GRASS_FADE_START_LOW: float = 20.0
+const GRASS_FADE_END_LOW: float = 30.0
 
 ## Plain vertex-colour material (stone, houses, bushes, character).
 static func vertex_color() -> StandardMaterial3D:
@@ -37,6 +44,7 @@ static func _load_shader_material(key: String, path: String) -> ShaderMaterial:
 	if m == null:
 		push_error("GameMaterials: cannot load " + path)
 		m = ShaderMaterial.new()
+	m.set_shader_parameter("quality", 0.0 if _low_quality else 1.0)
 	_cache[key] = m
 	return m
 
@@ -50,6 +58,8 @@ static func grass() -> ShaderMaterial:
 	var m: ShaderMaterial = foliage().duplicate() as ShaderMaterial
 	m.set_shader_parameter("wind_strength", 0.16)
 	m.set_shader_parameter("sway_ref_height", 0.7)
+	m.set_shader_parameter("fade_start", GRASS_FADE_START)
+	m.set_shader_parameter("fade_end", GRASS_FADE_END)
 	_cache["grass"] = m
 	return m
 
@@ -58,3 +68,16 @@ static func terrain() -> ShaderMaterial:
 
 static func ocean() -> ShaderMaterial:
 	return _load_shader_material("ocean", "res://Assets/Materials/ocean_material.tres")
+
+## Called by WorldManager whenever the graphics setting changes (and after the world is built).
+static func apply_quality(low: bool) -> void:
+	_low_quality = low
+	for key: Variant in _cache.keys():
+		var m: ShaderMaterial = _cache[key] as ShaderMaterial
+		if m == null:
+			continue
+		m.set_shader_parameter("quality", 0.0 if low else 1.0)
+	if _cache.has("grass"):
+		var g: ShaderMaterial = _cache["grass"] as ShaderMaterial
+		g.set_shader_parameter("fade_start", GRASS_FADE_START_LOW if low else GRASS_FADE_START)
+		g.set_shader_parameter("fade_end", GRASS_FADE_END_LOW if low else GRASS_FADE_END)

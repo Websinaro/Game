@@ -20,12 +20,19 @@ const RIB: Color = Color(0.35, 0.42, 0.16)
 const NUT_GREEN: Color = Color(0.40, 0.50, 0.14)
 const NUT_BROWN: Color = Color(0.42, 0.28, 0.10)
 
+## Real coconut palm model (low poly, textured). If it is missing the procedural palm is used.
+const PALM_GLB: String = "res://Assets/Models/coconut_tree_low_poly.glb"
+
 static var _cache: Dictionary = {}
 
 static func get_variant_mesh(variant: int, detail: int) -> ArrayMesh:
 	var key: String = "palm_%d_%d" % [variant, detail]
 	if not _cache.has(key):
-		_cache[key] = build_mesh(11 + variant * 31, 7.0 + float(variant) * 1.2, 1.0 + float(variant) * 0.5, 10 + variant, detail)
+		var glb: ArrayMesh = GlbMesh.load_mesh(PALM_GLB, 9.0 + float(variant) * 1.2)
+		if glb != null:
+			_cache[key] = glb
+		else:
+			_cache[key] = build_mesh(11 + variant * 31, 7.0 + float(variant) * 1.2, 1.0 + float(variant) * 0.5, 10 + variant, detail)
 	return _cache[key] as ArrayMesh
 
 ## detail: 1 = full (leaflets, coconuts), 0 = distant LOD.
@@ -133,7 +140,8 @@ static func _add_frond(mb: MeshBuilder, origin: Vector3, yaw: float, elev: float
 func _ready() -> void:
 	var mi: MeshInstance3D = MeshInstance3D.new()
 	mi.name = "Mesh"
-	mi.mesh = build_mesh(seed_value, trunk_height, trunk_lean, frond_count, 1)
+	var glb: ArrayMesh = GlbMesh.load_mesh(PALM_GLB, trunk_height + 1.0)
+	mi.mesh = glb if glb != null else build_mesh(seed_value, trunk_height, trunk_lean, frond_count, 1)
 	add_child(mi)
 	if with_collision:
 		var body: StaticBody3D = StaticBody3D.new()
