@@ -1,7 +1,10 @@
 Terrain textures
 ================
 Phase 1 ships procedural textures (NoiseTexture2D resources) inside
-Assets/Materials/terrain_material.tres, so there are no image files to import.
+Assets/Materials/terrain_material.tres, so there are no terrain image files to import.
+
+ocean_water.jpg is the water surface texture taken from ocean_wave.glb; it is used by
+Assets/Materials/ocean.gdshader (water_tex).
 
 To use your own art (e.g. from Prisma3D or any paint app):
  1. Copy tileable PNG/JPG files into this folder.
