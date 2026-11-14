@@ -222,3 +222,45 @@ The Whispering Grove now creates a small set of soft-edged, animated mist cards 
 - HIGH: up to 6 mist layers, 3 shaft cards.
 
 These are lightweight transparent shader approximations for the Mobile renderer, not volumetric fog or physically simulated god rays. They do not add real-time lights or shadow casters. Test transparency sorting and overdraw on target Android devices.
+
+---
+
+## CAVE UPDATE - Phase 1 cave integration (entrance + inside)  [NOT yet run in Godot]
+
+The hidden path now ends at **The First Cave** instead of the old sanctum. New story chain (`Data/quests.json`, quest `lost_axe`):
+
+1. `find_marks` -> 2. `hidden_path` (god tree opens the vines) -> **3. `stones`** find the SEA, FOREST and MOUNTAIN stones lying around the cave (3/3)
+-> **4. `door`** set them in the three hollows of the stone door in the right order -> the door sinks open
+-> **5. `pantham`** go into the dark first chamber and take the pantham (torch; a faint ember glow shows where it is)
+-> **6. `altar`** follow the passage through the neck into the second chamber, the **station**; its relief says this is only the beginning of the four trials still to come -> "THE JOURNEY HAS JUST BEGUN..."
+
+Right order on the door (left to right): SEA, FOREST, MOUNTAIN. The carved stele beside the plaza gives it as a riddle. A wrong full set shakes the door, resets the sockets and locks them 3 s (Normal) / 10 s (Hard).
+
+### New / changed files
+| File | What |
+|---|---|
+| `Assets/Models/cave_lp.glb` | your cave, cleaned and baked (see below) |
+| `Scripts/Environment/CaveRegion.gd`, `Scenes/Environment/Cave.tscn` | the region: cave shell + collision, door, plaza, stones, stele, pantham, station, darkness |
+| `Scripts/Objects/CaveStone.gd`, `StoneSocket.gd`, `PanthamPickup.gd`, `PanthamTorch.gd` | interactables and the carried torch (flickering OmniLight on the player's ModelRoot) |
+| `Data/world_regions.json` | `ancient_cave` enabled, `ancient_ruins` disabled (set `enabled` back to true to restore it) |
+| `Data/quests.json` | `lost_axe` rewritten; the old chain is kept as `lost_axe_sanctum` |
+| `Data/story.json` | stone, door, stele, pantham and station texts; new phase-complete text |
+| `Scripts/Core/Tuning.gd` | `CAVE_*` numbers (darkness, torch range/energy, lockout; Normal/Hard pairs) |
+| `Scripts/World/WorldManager.gd` | `ancient_cave` fog profile |
+| `tools/bake_cave.py`, `tools/validate_project.py` | cave baker; validator now reads objective ids from all quests |
+
+### How the cave model was prepared (`tools/bake_cave.py`)
+Your `cave_lp` file is one closed bumpy volume of **two chambers joined by a narrow neck** (about 3 x 3 x 6 model units, 18k triangles). It has no floor, so it cannot be walked on as it is. The baker: applies the glTF rotation, turns it so the doorway faces +Z, adds a **flat walkable floor** from the cave outline at one height, drops everything under it, cuts an **arched doorway** in the front wall, and writes one GLB (12.7k + 349 triangles, the original 3 textures). Collision is a trimesh built from the same faces at game scale (backface collision on). Scale in game: `CaveRegion.CAVE_SCALE = 4.5` (first chamber about 10 m wide and 5 m high, neck about 3 m wide, whole cave about 26 m long). The player is 2.4 m tall in this project, so do not go much below 4.
+`cave_on_an_alien_planet_skybox` is **not used**: it is a 16 MB sphere with a 4k texture and an alien sky; it does not fit an enclosed mobile cave. Tell me if you want it as a distant backdrop anyway.
+
+### Darkness and light
+Inside the cave `CaveRegion._process` drives the existing HUD vignette (`GameInput.darkness_changed`): 0.97 before the pantham, `CAVE_DARK_TORCH_*` after. The pantham adds a real `OmniLight3D` to the player (no shadows, mobile friendly). The sun and sky still light the cave walls in the engine, so the vignette does most of the work, the same trick the old sanctum used.
+
+### Tested vs untested (be honest with yourself before you ship)
+Tested here: `tools/validate_project.py` passes with 0 errors; the baked GLB was checked structurally (header, chunk sizes, accessor ranges, index bounds, no NaN, normals unit length) and with rays against the mesh (the doorway is open at walking height, the lintel is closed, the floor slice is one connected peanut shape, neck about 0.7 u = 3 m wide, ceiling 1.2 u = 5.4 m in chamber one and 0.8 u at the neck).
+NOT tested (no Godot here): any of the GDScript running; the GLB importing in Godot 4.7; the doorway/door slab looking right (the slab stands just in front of the arch and is sized by guess); collision feel in the neck; camera clipping inside the cave; stone/door positions on the plateau; the darkness level; performance on a phone. If something is red in Debugger > Errors, paste it and it gets fixed.
+
+Things most likely to need a number change: `CaveRegion.CAVE_SCALE`, `DOOR_*`, `DOOR_Z`, `STONE_SPOTS`, `PANTHAM_SPOT_U`, `STATION_SPOT_U`, `SIGIL_ROW_Z_U` (all constants at the top of that file).
+
+### Phase 2 hardening - already prepared
+`CaveRegion.SOLUTION` is one constant (make it a random permutation and generate the stele text from `Data/story.json`), `Tuning.CAVE_*` already have Hard values, `StoneSocket` / `CaveStone` / `PanthamPickup` are small separate scripts, and `quests.json` supports `*_hard` fields. See the chat for the proposed hard clues.

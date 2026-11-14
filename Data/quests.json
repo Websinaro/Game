@@ -17,6 +17,46 @@
           "notify": "The marks lead to the forest. Look for anything unusual - a path may be hidden."
         },
         {
+          "id": "stones",
+          "text": "Search around the mountain for the three stones.",
+          "required": 3,
+          "notify": "The hidden path ends at a mountain with a sealed stone door. Three hollows wait in it. Search the land around the mountain for stones.",
+          "notify_hard": "The path ends at a sealed stone door with three hollows. Whatever fills them lies somewhere out in the land around it."
+        },
+        {
+          "id": "door",
+          "text": "Set the three stones into the stone door, in the right order.",
+          "notify": "You hold all three stones. Read the carved stone, then fill the hollows of the door."
+        },
+        {
+          "id": "pantham",
+          "text": "Enter the dark cave and find the pantham.",
+          "notify": "The door grinds open. Beyond it there is only darkness, but something glows faintly inside."
+        },
+        {
+          "id": "altar",
+          "text": "Follow the passage to the station deep inside the cave.",
+          "notify": "The pantham burns. Follow the passage deeper into the mountain."
+        }
+      ]
+    },
+    {
+      "id": "lost_axe_sanctum",
+      "title": "The Lost Axe (old sanctum)",
+      "phase": 1,
+      "start_notify": "Explore the beach. Something may have been left behind.",
+      "objectives": [
+        {
+          "id": "find_marks",
+          "text": "Find the first clue to the missing axe.",
+          "notify": ""
+        },
+        {
+          "id": "hidden_path",
+          "text": "Follow the trail into the forest and find the hidden path.",
+          "notify": "The marks lead to the forest. Look for anything unusual - a path may be hidden."
+        },
+        {
           "id": "inscriptions",
           "text": "Search the forgotten sanctum for inscription fragments.",
           "required": 3,

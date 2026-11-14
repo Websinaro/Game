@@ -60,8 +60,8 @@
       "body": "The pillar is cold and silent. The inscription must be understood first."
     },
     "final_clue": {
-      "title": "The Carved Relief",
-      "body": "On the altar, a relief glows: a figure carrying an axe, climbing toward vast, mist-wrapped mountains, followed by a line of lamps.\n\nBelow it, the words: \"Not lost, but carried. Where the clouds drink the forests, the Keeper waits.\"\n\nWhoever took the axe did so deliberately - and took it east, toward the high mountains."
+      "title": "The Station",
+      "body": "The passage ends in a round chamber. At its centre stands a carved platform, and on it a relief: a warrior with an axe stands before four doors.\n\nBelow it are the words: \"This is only the beginning. Four trials lie ahead of you. The axe was carried far beyond this mountain.\"\n\nFour sigils on the floor wait in the dark, still unlit."
     },
     "beach_marks_hard": {
       "title": "Marks in the Sand",
@@ -70,12 +70,40 @@
     "tablet_full_hard": {
       "title": "The Great Tablet",
       "body": "The inscription is whole. Read it slowly - nothing here is said twice. Five pillars wait, set in a row from west to east."
+    },
+    "stone_locked": {
+      "title": "A Strange Stone",
+      "body": "A smooth stone lies here, glowing faintly. You feel it belongs somewhere, but you do not yet know where."
+    },
+    "stone_sea": {
+      "title": "The Sea Stone",
+      "body": "A smooth stone the colour of deep water. It is cold in your hand and hums faintly, like a shell held to the ear."
+    },
+    "stone_forest": {
+      "title": "The Forest Stone",
+      "body": "A stone of living green, warm as a sunlit leaf. Fine lines run through it like the veins of a leaf."
+    },
+    "stone_mountain": {
+      "title": "The Mountain Stone",
+      "body": "A heavy stone the colour of old laterite and amber. It feels older than anything else you have touched."
+    },
+    "socket_locked": {
+      "title": "The Stone Door",
+      "body": "A great door of grey stone seals the mountain. Three round hollows are carved into it, each shaped to hold a stone.\n\nYou carry nothing that fits. Perhaps stones lie somewhere in the land around the mountain."
+    },
+    "cave_tablet": {
+      "title": "The Carved Stone",
+      "body": "Worn letters run down the stone:\n\n\"Before the green, the water.\nBefore the water, nothing.\nAfter the green came the rock that carried the sky.\n\nFill the three hollows as the world was filled, from the left hand to the right.\""
+    },
+    "pantham_taken": {
+      "title": "The Pantham",
+      "body": "A pantham, an old torch of oiled cloth bound to a wooden staff. It catches fire at your touch, as if it had been waiting for you.\n\nThe dark pulls back. A passage leads deeper into the mountain."
     }
   },
   "phase_complete": {
-    "title": "PHASE 1 - THE LOST AXE",
+    "title": "THE FIRST TRIAL IS DONE",
     "banner": "THE JOURNEY HAS JUST BEGUN...",
-    "subtitle": "Phase 2 awaits beyond the mountains: dense forests, rivers and hidden caves.\nYou may keep exploring."
+    "subtitle": "Four more trials lie ahead.\nYou may keep exploring."
   },
   "tablet_lines": [
     "First came the SEA, that gave and took away.",

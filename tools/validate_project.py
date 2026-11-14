@@ -125,7 +125,7 @@ for f in files:
         try: json.load(open(f))
         except Exception as e: errs.append(f"{rel(f)}: invalid JSON {e}")
 q = json.load(open(os.path.join(root, "Data/quests.json")))
-ids = [o["id"] for o in q["quests"][0]["objectives"]]
+ids = [o["id"] for qq in q["quests"] for o in qq["objectives"]]
 ruins = open(os.path.join(root, "Scripts/Environment/AncientRuinsRegion.gd")).read()
 for oid in re.findall(r'(?:complete_objective|progress_objective|is_objective_active)\("(\w+)"', "".join(open(g).read() for g in gd)):
     if oid not in ids: errs.append(f"objective id '{oid}' used in scripts but not in quests.json")

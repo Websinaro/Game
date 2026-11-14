@@ -82,3 +82,14 @@ const SANCTUM_DARK_ON_NORMAL: bool = false
 const SANCTUM_DARK_ON_HARD: bool = true
 const SANCTUM_DARK_MAX_ALPHA: float = 0.97      # screen vignette strength inside the unlit sanctum
 const SANCTUM_DARK_FADE_SPEED: float = 1.6
+
+# ---- First cave (Phase 1): door puzzle, darkness, pantham (torch) ----------------------------
+const CAVE_DARK_NO_TORCH: float = 0.97          # screen vignette inside the cave before you hold the pantham
+const CAVE_DARK_TORCH_NORMAL: float = 0.50      # vignette strength once the pantham burns
+const CAVE_DARK_TORCH_HARD: float = 0.72
+const CAVE_TORCH_RANGE_NORMAL: float = 11.0     # metres the pantham light reaches
+const CAVE_TORCH_RANGE_HARD: float = 7.5
+const CAVE_TORCH_ENERGY_NORMAL: float = 2.2
+const CAVE_TORCH_ENERGY_HARD: float = 1.7
+const CAVE_LOCKOUT_NORMAL: float = 3.0          # seconds the door sockets stay dead after a wrong order
+const CAVE_LOCKOUT_HARD: float = 10.0

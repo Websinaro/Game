@@ -105,6 +105,11 @@ const ATMOSPHERE_PROFILES: Dictionary = {
 		"sun_scatter": 0.28, "aerial": 0.26, "sky_affect": 0.20,
 		"tint": Color(1.0, 0.91, 0.80, 1.0)
 	},
+	"ancient_cave": {
+		"density": 0.0030, "height": 0.0, "height_density": 0.030,
+		"sun_scatter": 0.22, "aerial": 0.28, "sky_affect": 0.22,
+		"tint": Color(0.94, 0.88, 0.80, 1.0)
+	},
 	"default": {
 		"density": 0.0022, "height": 0.0, "height_density": 0.012,
 		"sun_scatter": 0.16, "aerial": 0.18, "sky_affect": 0.18,
