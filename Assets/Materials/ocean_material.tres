@@ -1,11 +1,20 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
 
 [ext_resource type="Shader" path="res://Assets/Materials/ocean.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Textures/ocean_water.jpg" id="2_water"]
 
 [resource]
 render_priority = 0
 shader = ExtResource("1_shader")
-shader_parameter/shallow_color = Color(0.1, 0.6, 0.64, 0.72)
+shader_parameter/shallow_color = Color(0.12, 0.66, 0.66, 0.55)
 shader_parameter/deep_color = Color(0.02, 0.2, 0.4, 0.95)
+shader_parameter/quality = 1.0
 shader_parameter/wave_height = 0.22
 shader_parameter/wave_speed = 0.8
+shader_parameter/shore_z_start = 80.0
+shader_parameter/shore_z_end = 40.0
+shader_parameter/sea_floor_y = -5.0
+shader_parameter/beach_top_y = 2.0
+shader_parameter/depth_color_range = 5.0
+shader_parameter/foam_width = 0.9
+shader_parameter/water_tex = ExtResource("2_water")

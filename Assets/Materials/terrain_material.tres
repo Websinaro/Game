@@ -1,16 +1,21 @@
-[gd_resource type="ShaderMaterial" load_steps=17 format=3]
+[gd_resource type="ShaderMaterial" load_steps=21 format=3]
 
 [ext_resource type="Shader" path="res://Assets/Materials/terrain.gdshader" id="1_shader"]
 
 [sub_resource type="FastNoiseLite" id="noise_grass"]
 noise_type = 1
-frequency = 0.05
+seed = 11
+frequency = 0.035
 fractal_type = 1
-fractal_octaves = 4
+fractal_octaves = 5
+fractal_gain = 0.55
+domain_warp_enabled = true
+domain_warp_amplitude = 14.0
+domain_warp_frequency = 0.02
 
 [sub_resource type="Gradient" id="grad_grass"]
-offsets = PackedFloat32Array(0.0, 0.5, 1.0)
-colors = PackedColorArray(0.2, 0.38, 0.1, 1, 0.3, 0.5, 0.14, 1, 0.42, 0.58, 0.2, 1)
+offsets = PackedFloat32Array(0.0, 0.4, 0.7, 1.0)
+colors = PackedColorArray(0.13, 0.27, 0.07, 1, 0.22, 0.4, 0.1, 1, 0.34, 0.5, 0.15, 1, 0.5, 0.6, 0.25, 1)
 
 [sub_resource type="NoiseTexture2D" id="tex_grass"]
 width = 256
@@ -21,13 +26,18 @@ noise = SubResource("noise_grass")
 
 [sub_resource type="FastNoiseLite" id="noise_sand"]
 noise_type = 1
-frequency = 0.08
+seed = 22
+frequency = 0.06
 fractal_type = 1
-fractal_octaves = 3
+fractal_octaves = 4
+fractal_gain = 0.5
+domain_warp_enabled = true
+domain_warp_amplitude = 18.0
+domain_warp_frequency = 0.02
 
 [sub_resource type="Gradient" id="grad_sand"]
-offsets = PackedFloat32Array(0.0, 1.0)
-colors = PackedColorArray(0.8, 0.7, 0.5, 1, 0.91, 0.83, 0.63, 1)
+offsets = PackedFloat32Array(0.0, 0.5, 1.0)
+colors = PackedColorArray(0.74, 0.64, 0.45, 1, 0.84, 0.75, 0.56, 1, 0.92, 0.85, 0.66, 1)
 
 [sub_resource type="NoiseTexture2D" id="tex_sand"]
 width = 256
@@ -38,13 +48,18 @@ noise = SubResource("noise_sand")
 
 [sub_resource type="FastNoiseLite" id="noise_soil"]
 noise_type = 1
-frequency = 0.06
+seed = 33
+frequency = 0.05
 fractal_type = 1
-fractal_octaves = 4
+fractal_octaves = 5
+fractal_gain = 0.5
+domain_warp_enabled = true
+domain_warp_amplitude = 10.0
+domain_warp_frequency = 0.02
 
 [sub_resource type="Gradient" id="grad_soil"]
-offsets = PackedFloat32Array(0.0, 1.0)
-colors = PackedColorArray(0.34, 0.22, 0.13, 1, 0.52, 0.35, 0.21, 1)
+offsets = PackedFloat32Array(0.0, 0.5, 1.0)
+colors = PackedColorArray(0.24, 0.15, 0.09, 1, 0.38, 0.26, 0.16, 1, 0.52, 0.37, 0.23, 1)
 
 [sub_resource type="NoiseTexture2D" id="tex_soil"]
 width = 256
@@ -54,14 +69,19 @@ color_ramp = SubResource("grad_soil")
 noise = SubResource("noise_soil")
 
 [sub_resource type="FastNoiseLite" id="noise_rock"]
-noise_type = 3
-frequency = 0.05
-fractal_type = 1
+noise_type = 1
+seed = 44
+frequency = 0.028
+fractal_type = 2
 fractal_octaves = 5
+fractal_gain = 0.5
+domain_warp_enabled = true
+domain_warp_amplitude = 22.0
+domain_warp_frequency = 0.02
 
 [sub_resource type="Gradient" id="grad_rock"]
-offsets = PackedFloat32Array(0.0, 0.5, 1.0)
-colors = PackedColorArray(0.2, 0.2, 0.22, 1, 0.33, 0.32, 0.31, 1, 0.48, 0.46, 0.43, 1)
+offsets = PackedFloat32Array(0.0, 0.4, 0.75, 1.0)
+colors = PackedColorArray(0.16, 0.16, 0.17, 1, 0.3, 0.29, 0.28, 1, 0.46, 0.44, 0.41, 1, 0.58, 0.56, 0.52, 1)
 
 [sub_resource type="NoiseTexture2D" id="tex_rock"]
 width = 256
@@ -72,13 +92,18 @@ noise = SubResource("noise_rock")
 
 [sub_resource type="FastNoiseLite" id="noise_beach"]
 noise_type = 1
+seed = 55
 frequency = 0.07
 fractal_type = 1
-fractal_octaves = 3
+fractal_octaves = 4
+fractal_gain = 0.5
+domain_warp_enabled = true
+domain_warp_amplitude = 12.0
+domain_warp_frequency = 0.02
 
 [sub_resource type="Gradient" id="grad_beach"]
 offsets = PackedFloat32Array(0.0, 1.0)
-colors = PackedColorArray(0.5, 0.43, 0.31, 1, 0.66, 0.58, 0.42, 1)
+colors = PackedColorArray(0.36, 0.31, 0.22, 1, 0.52, 0.45, 0.33, 1)
 
 [sub_resource type="NoiseTexture2D" id="tex_beach"]
 width = 256
@@ -87,13 +112,52 @@ seamless = true
 color_ramp = SubResource("grad_beach")
 noise = SubResource("noise_beach")
 
+[sub_resource type="FastNoiseLite" id="noise_detail"]
+noise_type = 1
+seed = 66
+frequency = 0.09
+fractal_type = 1
+fractal_octaves = 4
+fractal_gain = 0.5
+
+[sub_resource type="NoiseTexture2D" id="tex_detail"]
+width = 256
+height = 256
+seamless = true
+noise = SubResource("noise_detail")
+
+[sub_resource type="FastNoiseLite" id="noise_macro"]
+noise_type = 1
+seed = 77
+frequency = 0.012
+fractal_type = 1
+fractal_octaves = 3
+fractal_gain = 0.5
+
+[sub_resource type="NoiseTexture2D" id="tex_macro"]
+width = 256
+height = 256
+seamless = true
+noise = SubResource("noise_macro")
+
 [resource]
 shader = ExtResource("1_shader")
+shader_parameter/quality = 1.0
 shader_parameter/tile_scale = 0.12
-shader_parameter/macro_scale = 0.019
+shader_parameter/rock_scale = 0.1
+shader_parameter/detail_scale = 0.9
+shader_parameter/macro_scale = 0.011
 shader_parameter/shore_wet_height = 1.1
+shader_parameter/tide_range = 0.18
+shader_parameter/blend_height = 0.35
+shader_parameter/blend_depth = 0.28
+shader_parameter/bump_strength = 0.25
+shader_parameter/strata_strength = 0.35
+shader_parameter/strata_freq = 2.4
 shader_parameter/grass_tex = SubResource("tex_grass")
 shader_parameter/sand_tex = SubResource("tex_sand")
 shader_parameter/soil_tex = SubResource("tex_soil")
 shader_parameter/rock_tex = SubResource("tex_rock")
 shader_parameter/beach_tex = SubResource("tex_beach")
+shader_parameter/detail_tex = SubResource("tex_detail")
+shader_parameter/macro_tex = SubResource("tex_macro")
